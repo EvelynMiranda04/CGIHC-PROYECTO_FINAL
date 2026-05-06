@@ -115,6 +115,8 @@ Model M29;
 Model M30;
 Model M31;
 Model M32;
+// PERSONAJES Y NPC's:
+Model Ziggs;
 
 // ====================================================================================
 // 5. SISTEMA DE ILUMINACIÓN
@@ -352,6 +354,8 @@ int main()
 	M30 = Model();				M30.LoadModel("Models/30.obj");
 	M31 = Model();				M31.LoadModel("Models/31.obj");
 	M32 = Model();				M32.LoadModel("Models/32.obj");
+	// Personajes y NPC's
+	Ziggs = Model();			Ziggs.LoadModel("Models/Ziggs.obj");
 
 
 	// ====================================================================================
@@ -735,6 +739,16 @@ int main()
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL_BLEND);
 
+
+		// PERSONAJES
+		// Ziggs
+		model = glm::mat4(1.0);
+		model = glm::translate(glm::mat4(1.0), glm::vec3(-105.18f, 0.0f, -31.07f));
+		//model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Ziggs.RenderModel();
+
+
 		// PISO MODELO (.OBJ)
 		model = glm::mat4(1.0);
 		model = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, -1.0f, 0.0f));
@@ -822,6 +836,13 @@ int main()
 		model = glm::translate(glm::mat4(1.0), glm::vec3(55.0f, 0.0f, -45.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M16.RenderModel();
+
+		// Mini fuente
+		model = glm::mat4(1.0);
+		model = glm::translate(glm::mat4(1.0), glm::vec3(-120.0f, 0.0f, -34.0f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M15.RenderModel();
 
 		// VEGETACIÓN -----------------------------------------------------------------------
 
@@ -973,6 +994,152 @@ int main()
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M31.RenderModel();
 
+
+		// Botes de basura -----------------------------------------------------------------------
+		// Bote 1
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-88.09f, 0.0f, -72.72f));
+		//model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M18.RenderModel();
+		// Bote 2
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-87.15f, 0.0f, 19.36f));
+		//model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M18.RenderModel();
+		// Bote 3
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(86.06f, 0.0f, -18.43f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M18.RenderModel();
+		// Bote 4
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(87.51f, 0.0f, 73.59f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M18.RenderModel();
+
+		// Bancas -----------------------------------------------------------------------
+		// Banca 1
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-89.0f, 0.0f, -22.65f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M19.RenderModel();
+		// Banca 2
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-89.0f, 0.0f, -40.17f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M19.RenderModel();
+
+		// Banca 3
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-41.42f, 0.0f, -80.5f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M19.RenderModel();
+		// Banca 4
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-68.03f, 0.0f, -80.5f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M19.RenderModel();
+		// Banca 5
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(40.45f, 0.0f, -80.5f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M19.RenderModel();
+		// Banca 6
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(13.84f, 0.0f, -80.5f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M19.RenderModel();
+		// Banca 7
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(67.01f, 0.0f, -80.5f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M19.RenderModel();
+
+		// Banca 8
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(86.96f, 0.0f, -69.64f));
+		//model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M19.RenderModel();
+		// Banca 9
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(86.96f, 0.0f, -51.81f));
+		//model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M19.RenderModel();
+
+
+		// Banca 10
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(88.41f, 0.0f, 22.38f));
+		//model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M19.RenderModel();
+		// Banca 11
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(88.41f, 0.0f, 40.21f));
+		//model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M19.RenderModel();
+
+
+		// Banca 12
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-88.05f, 0.0f, 69.43f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M19.RenderModel();
+		// Banca 13
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-88.05f, 0.0f, 51.91f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M19.RenderModel();
+
+		// Banca 14
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(41.35f, 0.0f, 80.71f));
+		model = glm::rotate(model, 270 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M19.RenderModel();
+		// Banca 15
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(67.95f, 0.0f, 80.71f));
+		model = glm::rotate(model, 270 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M19.RenderModel();
+		// Banca 16
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-40.54f, 0.0f, 80.71f));
+		model = glm::rotate(model, 270 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M19.RenderModel();
+
+		// Banca 17
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-13.93f, 0.0f, 80.71f));
+		model = glm::rotate(model, 270 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M19.RenderModel();
+		// Banca 18
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-67.09f, 0.0f, 80.71f));
+		model = glm::rotate(model, 270 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M19.RenderModel();
+
+		
 
 
 
