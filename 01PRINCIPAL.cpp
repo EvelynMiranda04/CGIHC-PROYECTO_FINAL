@@ -114,6 +114,7 @@ Model M28_4;
 Model M29;
 Model M30;
 Model M31;
+Model M32;
 
 // ====================================================================================
 // 5. SISTEMA DE ILUMINACIÓN
@@ -350,6 +351,7 @@ int main()
 	M29 = Model();				M29.LoadModel("Models/29.obj");
 	M30 = Model();				M30.LoadModel("Models/30.obj");
 	M31 = Model();				M31.LoadModel("Models/31.obj");
+	M32 = Model();				M32.LoadModel("Models/32.obj");
 
 
 	// ====================================================================================
@@ -745,6 +747,43 @@ int main()
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M01.RenderModel();
 
+		// TRENES
+		// Tren chico
+		model = glm::mat4(1.0);
+		model = glm::translate(glm::mat4(1.0), glm::vec3(-6.5f, 0.0f, 7.26f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M03.RenderModel();
+		model = glm::mat4(1.0);
+		model = glm::translate(glm::mat4(1.0), glm::vec3(-55.0f, 0.0f, 7.26f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M04.RenderModel();
+
+		// Tren largo
+		model = glm::mat4(1.0);
+		model = glm::translate(glm::mat4(1.0), glm::vec3(108.0f, 0.0f, -8.0f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M03.RenderModel();
+		model = glm::mat4(1.0);
+		model = glm::translate(glm::mat4(1.0), glm::vec3(157.0f, 0.0f, -8.0f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M04.RenderModel();
+		model = glm::mat4(1.0);
+		model = glm::translate(glm::mat4(1.0), glm::vec3(214.0f, 0.0f, -8.0f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M04.RenderModel();
+		model = glm::mat4(1.0);
+		model = glm::translate(glm::mat4(1.0), glm::vec3(270.0f, 0.0f, -8.0f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M04.RenderModel();
+
+
+
+
+
 		// Edificio Principañ
 		model = glm::mat4(1.0);
 		model = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, 0.0f, 45.0f));
@@ -784,6 +823,7 @@ int main()
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M16.RenderModel();
 
+		// VEGETACIÓN -----------------------------------------------------------------------
 
 		// Pino 1 (Cerca de la Nave)
 		model = glm::mat4(1.0);
@@ -791,20 +831,97 @@ int main()
 		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M26.RenderModel();
-
 		// Pino 2 (Cerca de la Biblioteca)
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(30.0f, 0.0f, -55.0f));
 		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M26.RenderModel();
-
 		// Pino 3 (Cerca del Edificio Principal)
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(-75.0f, 0.0f, 70.0f));
 		model = glm::rotate(model, -90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M26.RenderModel();
+
+		// Pino 4
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-175.0f, 0.0f, -105.0f));
+		model = glm::rotate(model, 0 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M26.RenderModel();
+		// Pino 5
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-170.0f, 0.0f, -10.0f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M26.RenderModel();
+		// Pino 6
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-35.0f, 0.0f, -55.0f));
+		model = glm::rotate(model, 0 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M26.RenderModel();
+		// Pino 7
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(165.0f, 0.0f, 45.0f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M26.RenderModel();
+		// Pino 8
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(50.0f, 0.0f, 35.0f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M26.RenderModel();
+
+
+
+		
+		// Cerezo 1
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-60.0f, 0.0f, 45.0f));
+		model = glm::rotate(model, 120 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M32.RenderModel();
+		// Cerezo 2
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(155.0f, 0.0f, -20.0f));
+		model = glm::rotate(model, -75 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M32.RenderModel();
+		// Cerezo 3
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-30.0f, 0.0f, -25.0f));
+		model = glm::rotate(model, 120 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M32.RenderModel();
+		// Cerezo 4
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-90.0f, 0.0f, 20.0f));
+		model = glm::rotate(model, -40 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M32.RenderModel();
+		// Cerezo 5
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(85.0f, 0.0f, 75.0f));
+		model = glm::rotate(model, 105 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M32.RenderModel();
+		// Cerezo 6
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-80.0f, 0.0f, -75.0f));
+		model = glm::rotate(model, 0 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M32.RenderModel();
+		// Cerezo 7
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-150.0f, 0.0f, 120.0f));
+		model = glm::rotate(model, 105 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M32.RenderModel();
+
+		// -----------------------------------------------------------------------------------
 
 
 		// Coche 1 (Estacionado cerca del Edificio Principal)
