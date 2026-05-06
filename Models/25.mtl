@@ -1,0 +1,190 @@
+# Blender 5.1.1 MTL File: '25Proy.blend'
+# www.blender.org
+
+newmtl 25_01-bin
+Ns 640.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd 25_01.png
+map_refl bin_lowpoly_bin_Metallic.png
+map_Bump -bm 1.000000 bin_lowpoly_bin_Normal.png
+
+newmtl 25_02-book_cover_01
+Ns 640.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd 25_02.jpg
+
+newmtl 25_03-book_02
+Ns 640.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd 25_03.jpg
+
+newmtl 25_04-book_03
+Ns 640.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd 25_04.jpg
+
+newmtl 25_05-chair
+Ns 640.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd 25_05.png
+map_Bump -bm 1.000000 chair_lowpoly_chair_Normal.png
+
+newmtl 25_06-desk1
+Ns 640.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd 25_06.png
+map_refl desk_lowpoly_desk_Metallic.png
+map_Bump -bm 1.000000 desk_lowpoly_desk_Normal.png
+
+newmtl 25_07-ladder
+Ns 640.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd 25_07.png
+map_refl ladder_lowpoly_ladder_Metallic.png
+map_Bump -bm 1.000000 ladder_lowpoly_ladder_Normal.png
+
+newmtl 25_08-stage2
+Ns 640.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd 25_08.png
+map_Bump -bm 1.000000 ladder_lowpoly_stage_Normal.png
+
+newmtl 25_09-light
+Ns 640.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd 25_09.png
+map_refl light_lowpoly_light_Metallic.png
+map_Bump -bm 1.000000 light_lowpoly_light_Normal.png
+
+newmtl 25_10-long_table
+Ns 640.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd 25_10.png
+map_Bump -bm 1.000000 long_table_lowpoly_long_table_Normal.png
+
+newmtl 25_11-round_table
+Ns 640.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd 25_11.png
+map_Bump -bm 1.000000 round_table_lowpoly_round_table_Normal.png
+
+newmtl 25_12-shell
+Ns 737.836914
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd 25_12.png
+map_Bump -bm 1.000000 shell_lowpoly_shell_Normal.png
+
+newmtl 25_13-small_shell
+Ns 640.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd 25_13.png
+map_Bump -bm 1.000000 small_shell_lowpoly_small_shell_Normal.png
+
+newmtl 25_14-table_02
+Ns 640.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd 25_14.png
+map_Bump -bm 1.000000 table_02_lowpoly_table_02_Normal.png
+
+newmtl 25_15-table
+Ns 640.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd 25_15.png
+map_Bump -bm 1.000000 table_lowpoly_table_Normal.png
+
+newmtl 25_16-timer
+Ns 640.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd 25_16.png
+map_refl timer_lowpoly_timer_Metallic.png
+map_Bump -bm 1.000000 timer_lowpoly_timer_Normal.png
+
+newmtl page
+Ns 640.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd 21_11.jpeg
