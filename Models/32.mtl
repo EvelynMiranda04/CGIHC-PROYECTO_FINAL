@@ -1,0 +1,22 @@
+# Blender 5.1.1 MTL File: '32Proy.blend'
+# www.blender.org
+
+newmtl 32_1-Tree_Leaves_Mat
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 2
+map_Kd 32_1.jpg
+map_d Tree_Stem_Opacity.png
+
+newmtl 32_2-Tree_Trunk_Mat
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd 32_2.jpg
