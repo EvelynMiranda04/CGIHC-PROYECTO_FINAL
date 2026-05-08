@@ -53,6 +53,40 @@ float toffsetnumerov = 0.0f;
 float toffsetnumerocambiau = 0.0f;
 float angulovaria = 0.0f;
 
+// ==========================================
+// VARIABLES AVATAR
+// ==========================================
+/*
+float rotacionAvatar = 0.0f;
+float tiempoAnimacion = 0.0f;
+float velocidadAnimacion = 0.15f; 
+float amplitudArticulacion = 35.0f; 
+// Variables de movimiento para el recorrido
+float posZ_Avatar = -30.0f;       // Posición inicial en Z
+float posZ_Inicial = -30.0f;      // Guardamos el origen
+bool estaMoviendo = true;         // Estado: moviendo o esperando
+float cronometroEspera = 0.0f;    // Contador para los 2 segundos
+int seccionActual = 1;			  // Para el tramos
+float distanciaObjetivo = 15.0f;
+*/
+
+float tiempoAnimacion = 0.0f;
+float velocidadAnimacion = 0.15f;
+float rotacionAvatar = 0.0f;
+float amplitudArticulacion = 35.0f;
+
+// Variables de movimiento para el recorrido
+float distanciaRecorrida = 0.0f;
+float cuerpoPosX = 120.0f;
+float cuerpoPosZ = -30.0f;
+float cuerpoRotY = 0.0f; // Empezamos en 0 porque tus piezas ya tienen el 180 interno
+bool estaMoviendo = true;
+float cronometroEspera = 0.0f;
+float velocidadTrayecto = 0.10f;
+
+
+
+
 // Control de Tiempo (DeltaTime) para animaciones fluidas independientes de los FPS
 GLfloat deltaTime = 0.0f;
 GLfloat lastTime = 0.0f;
@@ -117,6 +151,15 @@ Model M31;
 Model M32;
 // PERSONAJES Y NPC's:
 Model Ziggs;
+
+// AVATAR
+Model hw_cuerpo; 
+Model hw_cabeza; 
+Model hw_espada;
+Model hw_PiernaDerecha;
+Model hw_PiernaIzquierda;
+Model hw_BrazoDerecho;
+Model hw_BrazoIzquierdo;
 
 // ====================================================================================
 // 5. SISTEMA DE ILUMINACIÓN
@@ -297,8 +340,7 @@ void CreateShaders()
 // ====================================================================================
 // FUNCIÓN PRINCIPAL (MAIN)
 // ====================================================================================
-int main()
-{
+int main(){
 	// ====================================================================================
 	// --- 1. Inicialización de Ventana y Cámara ---
 	// ====================================================================================
@@ -329,7 +371,7 @@ int main()
 	M08 = Model();				M08.LoadModel("Models/08.obj");
 	//M09 = Model();				M09.LoadModel("Models/09.obj");
 	//M10 = Model();				M10.LoadModel("Models/10.obj");
-	M11 = Model();				M11.LoadModel("Models/11.obj");
+	//M11 = Model();				M11.LoadModel("Models/11.obj");
 	M12 = Model();				M12.LoadModel("Models/12.obj");
 	//M13 = Model();				M13.LoadModel("Models/13.obj");
 	M14 = Model();				M14.LoadModel("Models/14.obj");
@@ -357,6 +399,14 @@ int main()
 	// Personajes y NPC's
 	Ziggs = Model();			Ziggs.LoadModel("Models/Ziggs.obj");
 
+	//Avatar
+	hw_cuerpo = Model();			hw_cuerpo.LoadModel("Models/hw_cuerpo.obj");
+	hw_cabeza = Model();			hw_cabeza.LoadModel("Models/hw_cabeza.obj");
+	hw_espada = Model();			hw_espada.LoadModel("Models/hw_espada.obj");
+	hw_PiernaDerecha = Model();		hw_PiernaDerecha.LoadModel("Models/hw_PiernaDerecha.obj");
+	hw_PiernaIzquierda = Model();	hw_PiernaIzquierda.LoadModel("Models/hw_PiernaIzquierda.obj");
+	hw_BrazoDerecho = Model();		hw_BrazoDerecho.LoadModel("Models/hw_BrazoDerecho.obj");
+	hw_BrazoIzquierdo = Model();	hw_BrazoIzquierdo.LoadModel("Models/hw_BrazoIzquierdo.obj");
 
 	// ====================================================================================
 	// --- 3. Carga de Skybox y Configuración de Materiales ---
@@ -497,6 +547,11 @@ int main()
 	glm::vec2 toffset = glm::vec2(0.0f, 0.0f);
 	glm::vec3 lowerLight = glm::vec3(0.0f, 0.0f, 0.0f);
 
+	// ====================================================================================
+	// VARIABLE DE CONTROL DE CÁMARAS
+	// 0 = F (1ra Persona), 1 = G (3ra Persona), 2 = H (Aérea), 3 = J (Libre)
+	// ====================================================================================
+	int tipoCamara = 0; // Iniciamos en 0 (F) por default
 
 
 	// ====================================================================================
@@ -586,16 +641,67 @@ int main()
 			}
 		}
 		*/
-
-		// Capturar teclas y ratón para la cámara
+		
+		// Capturar eventos de teclado general
 		glfwPollEvents();
-		camera.keyControl(mainWindow.getsKeys(), deltaTime);
-		camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
 
+		// --- 1. ACTUALIZAR ESTADO DE CÁMARA ---
+		if (mainWindow.getAccionF()) { tipoCamara = 0; mainWindow.apagarAccionF(); }
+		if (mainWindow.getAccionG()) { tipoCamara = 1; mainWindow.apagarAccionG(); }
+		if (mainWindow.getAccionH()) { tipoCamara = 2; mainWindow.apagarAccionH(); }
+		if (mainWindow.getAccionJ()) { tipoCamara = 3; mainWindow.apagarAccionJ(); }
+
+		// --- 2. DECLARAR VARIABLES FUERA DEL IF PARA QUE EL SHADER LAS VEA ---
+		glm::mat4 viewMatrix;
+		glm::vec3 posCamara;
+		glm::vec3 targetCamara;
+		glm::vec3 up(0.0f, 1.0f, 0.0f);
+
+		// --- 3. LÓGICA MATEMÁTICA DE CÁMARAS (AJUSTADA) ---
+		if (tipoCamara == 3) {
+			// [J] CÁMARA LIBRE
+			camera.keyControl(mainWindow.getsKeys(), deltaTime);
+			camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
+			viewMatrix = camera.calculateViewMatrix();
+			posCamara = camera.getCameraPosition();
+		}
+		else {
+			// CÁMARAS ANCLADAS (F, G, H)
+			glm::vec3 posAvatar(cuerpoPosX, 1.0f, cuerpoPosZ);
+			float rotacionGlobal = 180.0f + cuerpoRotY;
+			float radRot = rotacionGlobal * toRadians;
+
+			glm::vec3 forward(sin(radRot), 0.0f, cos(radRot));
+			glm::vec3 up(0.0f, 1.0f, 0.0f);
+			glm::vec3 right = glm::normalize(glm::cross(up, forward));
+
+			if (tipoCamara == 0) {
+				// [F] 1ra PERSONA: Aumentamos el multiplicador de forward de 0.6f a 1.2f 
+				// para que esté más adelante de la cara del modelo.
+				posCamara = posAvatar + glm::vec3(0.0f, 1.2f, 0.0f) + forward * 1.2f;
+				targetCamara = posCamara + forward;
+			}
+			else if (tipoCamara == 1) {
+				// [G] 3ra PERSONA (Al hombro): Cambiamos forward de -3.0f a -5.0f 
+				// para que la cámara esté más atrás.
+				posCamara = posAvatar + glm::vec3(0.0f, 1.8f, 0.0f) - forward * 5.0f + right * 1.0f;
+				targetCamara = posAvatar + glm::vec3(0.0f, 1.2f, 0.0f) + forward * 5.0f;
+			}
+			else if (tipoCamara == 2) {
+				// [H] AÉREA: Subimos la altura de 15.0f a 25.0f para ver más campo.
+				posCamara = posAvatar + glm::vec3(0.0f, 25.0f, -0.1f);
+				targetCamara = posAvatar;
+			}
+
+			viewMatrix = glm::lookAt(posCamara, targetCamara, up);
+		}
+		
 		// Preparación del Buffer y dibujo del fondo
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		skybox.DrawSkybox(camera.calculateViewMatrix(), projection);
+
+		// CAMBIO AQUÍ: Usamos viewMatrix
+		skybox.DrawSkybox(viewMatrix, projection);
 
 		// Activación del Shader Principal y recuperación de sus Uniforms
 		shaderList[0].UseShader();
@@ -609,9 +715,10 @@ int main()
 		uniformShininess = shaderList[0].GetShininessLocation();
 
 		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
-		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(camera.calculateViewMatrix()));
-		glUniform3f(uniformEyePosition, camera.getCameraPosition().x, camera.getCameraPosition().y, camera.getCameraPosition().z);
 
+		// CAMBIO AQUÍ: Usamos viewMatrix y posCamara
+		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+		glUniform3f(uniformEyePosition, posCamara.x, posCamara.y, posCamara.z);
 
 		// ====================================================================================
 		// FASE 1: CÁLCULO DE JERARQUÍAS DE LUCES
@@ -727,6 +834,7 @@ int main()
 		Ala2T.RenderModel();
 		*/
 
+
 		// LÁMPARA HEXTECH
 		// ====================================================================================
 		model = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, -2.0f, -7.0f));
@@ -739,7 +847,7 @@ int main()
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL_BLEND);
 
-
+		
 		// PERSONAJES
 		// Ziggs
 		model = glm::mat4(1.0);
@@ -747,20 +855,21 @@ int main()
 		//model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Ziggs.RenderModel();
-
+		
 
 		// PISO MODELO (.OBJ)
 		model = glm::mat4(1.0);
 		model = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, -1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Piso.RenderModel();
-
+		/*
 		// VIAS
 		model = glm::mat4(1.0);
 		//model = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, 0.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M01.RenderModel();
-
+		*/
+		
 		// TRENES
 		// Tren chico
 		model = glm::mat4(1.0);
@@ -771,7 +880,7 @@ int main()
 		model = glm::translate(glm::mat4(1.0), glm::vec3(-55.0f, 0.0f, 7.26f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M04.RenderModel();
-
+		/*
 		// Tren largo
 		model = glm::mat4(1.0);
 		model = glm::translate(glm::mat4(1.0), glm::vec3(108.0f, 0.0f, -8.0f));
@@ -793,8 +902,7 @@ int main()
 		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M04.RenderModel();
-
-
+		*/
 
 
 
@@ -804,6 +912,7 @@ int main()
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M02.RenderModel();
 
+		
 		// Barandal Edificio Principal
 		model = glm::mat4(1.0);
 		model = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, 0.0f, 50.0f));
@@ -816,7 +925,7 @@ int main()
 		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M14.RenderModel();
-
+		
 
 
 		// BIblioteca
@@ -830,22 +939,22 @@ int main()
 		model = glm::translate(glm::mat4(1.0), glm::vec3(-60.0f, 0.0f, -25.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M25.RenderModel();
-
+		/*
 		// Nave estacionada
 		model = glm::mat4(1.0);
 		model = glm::translate(glm::mat4(1.0), glm::vec3(55.0f, 0.0f, -45.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M16.RenderModel();
-
+		
 		// Mini fuente
 		model = glm::mat4(1.0);
 		model = glm::translate(glm::mat4(1.0), glm::vec3(-120.0f, 0.0f, -34.0f));
 		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M15.RenderModel();
-
+		*/
 		// VEGETACIÓN -----------------------------------------------------------------------
-
+		/*
 		// Pino 1 (Cerca de la Nave)
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(75.0f, 0.0f, -70.0f));
@@ -895,10 +1004,10 @@ int main()
 		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M26.RenderModel();
+		*/
 
 
-
-		
+		/*
 		// Cerezo 1
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(-60.0f, 0.0f, 45.0f));
@@ -940,11 +1049,11 @@ int main()
 		model = glm::translate(model, glm::vec3(-150.0f, 0.0f, 120.0f));
 		model = glm::rotate(model, 105 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		M32.RenderModel();
+		M32.RenderModel();*/
 
 		// -----------------------------------------------------------------------------------
 
-
+		/*
 		// Coche 1 (Estacionado cerca del Edificio Principal)
 		model = glm::mat4(1.0);
 		//model = glm::scale(model, glm::vec3(0.8f, 0.8f, 0.8f));
@@ -993,8 +1102,8 @@ int main()
 		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M31.RenderModel();
-
-
+		*/
+		/*
 		// Botes de basura -----------------------------------------------------------------------
 		// Bote 1
 		model = glm::mat4(1.0);
@@ -1020,7 +1129,8 @@ int main()
 		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M18.RenderModel();
-
+		*/
+		/*
 		// Bancas -----------------------------------------------------------------------
 		// Banca 1
 		model = glm::mat4(1.0);
@@ -1138,11 +1248,11 @@ int main()
 		model = glm::rotate(model, 270 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M19.RenderModel();
-
+		*/
 		
 
 
-
+		/*
 		// Puesto Ziggs
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(-105.0f, 0.0f, -30.0f));
@@ -1156,14 +1266,16 @@ int main()
 		//model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M12.RenderModel();
-
+		
+		
 		// Estructura (Al lado de la nave)
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(40.0f, 0.0f, -30.0f));
 		//model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M11.RenderModel();
-
+		*/
+		/*
 		// LINEA DE EDIFICIOS -----------------------------------------------------------------
 
 		// Edificio No 3 (Espejeado)
@@ -1272,7 +1384,7 @@ int main()
 		//model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M28_4.RenderModel();
-
+		*/
 		// ------------------------------------------------------------------------------------
 
 
@@ -1304,9 +1416,189 @@ int main()
 		// ====================================================================================
 
 		// Desacoplamos el Shader para dejarlo limpio para el siguiente Frame
+
+		// ===============================================================
+// Animación del Avatar
+// ===============================================================		
+		if (estaMoviendo) {
+			float paso = deltaTime * velocidadTrayecto;
+			distanciaRecorrida += paso;
+			tiempoAnimacion += deltaTime * velocidadAnimacion;
+
+			// SECCIÓN 1 a 4 se mantienen con sus límites anteriores...
+			if (distanciaRecorrida <= 58.0f) {
+				cuerpoPosZ -= paso;
+				cuerpoRotY = 0.0f;
+			}
+			else if (distanciaRecorrida <= 193.0f) {
+				cuerpoPosX -= paso;
+				cuerpoRotY = 90.0f;
+			}
+			else if (distanciaRecorrida <= 213.0f) {
+				cuerpoPosZ += paso;
+				cuerpoRotY = 180.0f;
+			}
+			else if (distanciaRecorrida <= 238.0f) {
+				cuerpoPosX -= paso;
+				cuerpoRotY = 90.0f;
+			}
+			// SECCIÓN 6: Límite 253
+			else if (distanciaRecorrida <= 253.0f) {
+				cuerpoPosX -= paso;
+				cuerpoPosZ += paso;
+				cuerpoRotY = -225.0f;
+			}
+			// SECCIÓN 7: Límite 263
+			else if (distanciaRecorrida <= 263.0f) {
+				cuerpoPosX -= paso;
+				cuerpoRotY = -195.0f;
+			}
+			// SECCIÓN 8: Límite 268 (Nueva: Rota -90 y avanza 5 unidades)
+			else if (distanciaRecorrida <= 268.0f) {
+				// Asumiendo avance en la dirección resultante (puedes ajustar el eje si es necesario)
+				cuerpoPosX -= paso;
+				cuerpoRotY = -285.0f; // -195 - 90 = -285
+			}
+			else {
+				// FINAL: Detenerse
+				estaMoviendo = false;
+				cronometroEspera = 0.0f;
+			}
+		}
+		else {
+			// ESPERA DE 3 SEGUNDOS Y REINICIO
+			cronometroEspera += deltaTime;
+			if (cronometroEspera >= 3.0f) {
+				distanciaRecorrida = 0.0f;
+				cuerpoPosX = 120.0f;
+				cuerpoPosZ = -30.0f;
+				cuerpoRotY = 0.0f;
+				estaMoviendo = true;
+			}
+		}
+
+		rotacionAvatar = sin(tiempoAnimacion) * amplitudArticulacion;
+		// Calculamos la oscilación de brazos/piernas
+		//tiempoAnimacion += deltaTime * velocidadAnimacion;
+		//rotacionAvatar = sin(tiempoAnimacion) * amplitudArticulacion;
+		
+		// =============================================================
+		// INSTANCIA HW - CUERPO (EL PADRE)
+		// =============================================================
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(cuerpoPosX, 1.0f, cuerpoPosZ));
+		model = glm::rotate(model, 180.0f * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, cuerpoRotY * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+
+		glm::mat4 modelCuerpo = model;
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Material_opaco.UseMaterial(uniformSpecularIntensity, uniformShininess);
+		hw_cuerpo.RenderModel();
+
+		// =============================================================
+		// INSTANCIA HW - CABEZA (HIJO DEL CUERPO)
+		// =============================================================
+		model = modelCuerpo; // Partimos de la base del cuerpo
+		model = glm::translate(model, glm::vec3(0.0f, 1.2f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_cabeza.RenderModel();
+		// =============================================================
+		// INSTANCIA HW - ESPADA (HIJO DEL CUERPO)
+		// =============================================================
+		model = modelCuerpo; // Empezamos desde la posición del cuerpo
+		model = glm::translate(model, glm::vec3(0.0f, 0.2f, -0.65f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_espada.RenderModel();
+		// =============================================================
+		// PIERNA DERECHA (Avanza 15°)
+		// =============================================================
+		model = modelCuerpo;
+		model = glm::translate(model, glm::vec3(0.18f, -0.6f, 0.0f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f)); // Tu rotación base
+		model = glm::rotate(model, rotacionAvatar * toRadians, glm::vec3(1.0f, 0.0f, 0.0f)); // +35°
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_PiernaDerecha.RenderModel();
+		// =============================================================
+		// PIERNA IZQUIERDA (Retrocede -15°)
+		// =============================================================
+		model = modelCuerpo;
+		model = glm::translate(model, glm::vec3(-0.18f, -0.6f, 0.0f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, -rotacionAvatar * toRadians, glm::vec3(1.0f, 0.0f, 0.0f)); // -35°
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_PiernaIzquierda.RenderModel();
+		// =============================================================
+		// BRAZO DERECHO (Retrocede con pierna derecha)
+		// =============================================================
+		model = modelCuerpo;
+		model = glm::translate(model, glm::vec3(0.37f, 0.2f, 0.0f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, -rotacionAvatar * toRadians, glm::vec3(1.0f, 0.0f, 0.0f)); // -35°
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_BrazoDerecho.RenderModel();
+		// =============================================================
+		// BRAZO IZQUIERDO (Avanza con pierna derecha)
+		// =============================================================
+		model = modelCuerpo;
+		model = glm::translate(model, glm::vec3(-0.37f, 0.2f, 0.0f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, rotacionAvatar * toRadians, glm::vec3(1.0f, 0.0f, 0.0f)); // +35°
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_BrazoIzquierdo.RenderModel();
+
+		
+
 		glUseProgram(0);
 		mainWindow.swapBuffers();
 	}
 
 	return 0;
 }
+
+
+/*
+		// =============================================================
+		// INSTANCIA HW - CUERPO (EL PADRE)
+		// =============================================================
+
+		model = glm::mat4(1.0);
+		// Volvemos a una posición fija para pruebas (puedes usar la que tenías)
+		model = glm::translate(model, glm::vec3(120.0f, 0.5f, -30.0f));
+
+		// ESTA ES LA ROTACIÓN QUE VAMOS A PROBAR:
+		// Prueba con 0, 90, 180 o 270 para ver cuál es el "frente" de tu modelo
+		model = glm::rotate(model, 180.0f * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+
+		glm::mat4 modelCuerpo = model;
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_cuerpo.RenderModel();
+		*/
+
+
+		/*
+				// Preparación del Buffer y dibujo del fondo
+				glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				skybox.DrawSkybox(camera.calculateViewMatrix(), projection);
+
+				// Activación del Shader Principal y recuperación de sus Uniforms
+				shaderList[0].UseShader();
+				uniformModel = shaderList[0].GetModelLocation();
+				uniformProjection = shaderList[0].GetProjectionLocation();
+				uniformView = shaderList[0].GetViewLocation();
+				uniformEyePosition = shaderList[0].GetEyePositionLocation();
+				uniformColor = shaderList[0].getColorLocation();
+				uniformTextureOffset = shaderList[0].getOffsetLocation();
+				uniformSpecularIntensity = shaderList[0].GetSpecularIntensityLocation();
+				uniformShininess = shaderList[0].GetShininessLocation();
+
+				glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
+				glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(camera.calculateViewMatrix()));
+				glUniform3f(uniformEyePosition, camera.getCameraPosition().x, camera.getCameraPosition().y, camera.getCameraPosition().z);
+				*/
+				/*
+						// Capturar teclas y ratón para la cámara
+						glfwPollEvents();
+						camera.keyControl(mainWindow.getsKeys(), deltaTime);
+						camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
+						*/
