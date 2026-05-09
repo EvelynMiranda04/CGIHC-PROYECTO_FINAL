@@ -56,20 +56,6 @@ float angulovaria = 0.0f;
 // ==========================================
 // VARIABLES AVATAR
 // ==========================================
-/*
-float rotacionAvatar = 0.0f;
-float tiempoAnimacion = 0.0f;
-float velocidadAnimacion = 0.15f; 
-float amplitudArticulacion = 35.0f; 
-// Variables de movimiento para el recorrido
-float posZ_Avatar = -30.0f;       // Posición inicial en Z
-float posZ_Inicial = -30.0f;      // Guardamos el origen
-bool estaMoviendo = true;         // Estado: moviendo o esperando
-float cronometroEspera = 0.0f;    // Contador para los 2 segundos
-int seccionActual = 1;			  // Para el tramos
-float distanciaObjetivo = 15.0f;
-*/
-
 float tiempoAnimacion = 0.0f;
 float velocidadAnimacion = 0.15f;
 float rotacionAvatar = 0.0f;
@@ -160,6 +146,9 @@ Model hw_PiernaDerecha;
 Model hw_PiernaIzquierda;
 Model hw_BrazoDerecho;
 Model hw_BrazoIzquierdo;
+// BANCA HW
+Model hw_banca;
+
 
 // ====================================================================================
 // 5. SISTEMA DE ILUMINACIÓN
@@ -407,6 +396,8 @@ int main(){
 	hw_PiernaIzquierda = Model();	hw_PiernaIzquierda.LoadModel("Models/hw_PiernaIzquierda.obj");
 	hw_BrazoDerecho = Model();		hw_BrazoDerecho.LoadModel("Models/hw_BrazoDerecho.obj");
 	hw_BrazoIzquierdo = Model();	hw_BrazoIzquierdo.LoadModel("Models/hw_BrazoIzquierdo.obj");
+	//Banca
+	hw_banca.LoadModel("Models/hw_banca.obj");
 
 	// ====================================================================================
 	// --- 3. Carga de Skybox y Configuración de Materiales ---
@@ -642,7 +633,7 @@ int main(){
 		}
 		*/
 		
-		// Capturar eventos de teclado general
+		// Capturar eventos de la ventana
 		glfwPollEvents();
 
 		// --- 1. ACTUALIZAR ESTADO DE CÁMARA ---
@@ -651,48 +642,99 @@ int main(){
 		if (mainWindow.getAccionH()) { tipoCamara = 2; mainWindow.apagarAccionH(); }
 		if (mainWindow.getAccionJ()) { tipoCamara = 3; mainWindow.apagarAccionJ(); }
 
-		// --- 2. DECLARAR VARIABLES FUERA DEL IF PARA QUE EL SHADER LAS VEA ---
+		// Leer el ratón una sola vez
+		float deltaX = mainWindow.getXChange();
+		float deltaY = mainWindow.getYChange();
+
+		// --- 2. LÓGICA DEL RATÓN ---
+		if (tipoCamara == 3) {
+			// [J] CÁMARA LIBRE: Controla su propio giro
+			camera.mouseControl(deltaX, deltaY);
+		}
+		else {
+			// CÁMARAS ANCLADAS: El ratón gira la cintura/cuerpo del personaje
+			// Ajusta el 0.3f si quieres que el ratón gire al personaje más rápido o más lento
+			cuerpoRotY -= deltaX * 0.3f;
+		}
+
+		// --- 3. CÁLCULO DE VECTORES DIRECCIONALES DEL AVATAR ---
+		glm::vec3 posAvatar(cuerpoPosX, 1.0f, cuerpoPosZ);
+		float rotacionGlobal = 180.0f + cuerpoRotY;
+		float radRot = rotacionGlobal * toRadians;
+
+		// Vector que apunta hacia el frente del personaje
+		glm::vec3 forwardAvatar(sin(radRot), 0.0f, cos(radRot));
+		glm::vec3 up(0.0f, 1.0f, 0.0f);
+		// Vector que apunta hacia la derecha del personaje
+		glm::vec3 rightAvatar = glm::normalize(glm::cross(up, forwardAvatar));
+
+		// --- 4. CONTROL DE MOVIMIENTO (A, W, S, D) Y ANIMACIÓN ---
+		bool isMoving = false;
+		float velocity = 0.15f * deltaTime; //la velocidad de caminar
+
+		if (tipoCamara == 3) {
+			// Si es cámara libre, el WASD mueve a la cámara por el aire, no al avatar
+			camera.keyControl(mainWindow.getsKeys(), deltaTime);
+		}
+		else {
+			// Si es cámara de jugador, el WASD mueve al avatar
+			if (mainWindow.getsKeys()[GLFW_KEY_W]) {
+				cuerpoPosX += forwardAvatar.x * velocity;
+				cuerpoPosZ += forwardAvatar.z * velocity;
+				isMoving = true;
+			}
+			if (mainWindow.getsKeys()[GLFW_KEY_S]) {
+				cuerpoPosX -= forwardAvatar.x * velocity;
+				cuerpoPosZ -= forwardAvatar.z * velocity;
+				isMoving = true;
+			}
+			if (mainWindow.getsKeys()[GLFW_KEY_D]) {
+				cuerpoPosX -= rightAvatar.x * velocity;
+				cuerpoPosZ -= rightAvatar.z * velocity;
+				isMoving = true;
+			}
+			if (mainWindow.getsKeys()[GLFW_KEY_A]) {
+				cuerpoPosX += rightAvatar.x * velocity;
+				cuerpoPosZ += rightAvatar.z * velocity;
+				isMoving = true;
+			}
+		}
+
+		// --- 5. ANIMACIÓN CONDICIONADA A MOVIMIENTO ---
+		if (isMoving) {
+			// Usamos una función seno basada en el tiempo para oscilar brazos/piernas de forma natural
+			// 10.0f = Qué tan rápido mueve los brazos. 45.0f = Cuántos grados se levantan.
+			rotacionAvatar = sin(glfwGetTime() * 10.0f) * 45.0f;
+		}
+		else {
+			rotacionAvatar = 0.0f; // Personaje quieto con extremidades rectas
+		}
+
+		// --- 6. CÁLCULO FINAL DE LAS MATRICES DE VISTA ---
 		glm::mat4 viewMatrix;
 		glm::vec3 posCamara;
 		glm::vec3 targetCamara;
-		glm::vec3 up(0.0f, 1.0f, 0.0f);
 
-		// --- 3. LÓGICA MATEMÁTICA DE CÁMARAS (AJUSTADA) ---
 		if (tipoCamara == 3) {
-			// [J] CÁMARA LIBRE
-			camera.keyControl(mainWindow.getsKeys(), deltaTime);
-			camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
 			viewMatrix = camera.calculateViewMatrix();
 			posCamara = camera.getCameraPosition();
 		}
 		else {
-			// CÁMARAS ANCLADAS (F, G, H)
-			glm::vec3 posAvatar(cuerpoPosX, 1.0f, cuerpoPosZ);
-			float rotacionGlobal = 180.0f + cuerpoRotY;
-			float radRot = rotacionGlobal * toRadians;
+			// Actualizamos la posición base del avatar por si se movió
+			posAvatar = glm::vec3(cuerpoPosX, 1.0f, cuerpoPosZ);
 
-			glm::vec3 forward(sin(radRot), 0.0f, cos(radRot));
-			glm::vec3 up(0.0f, 1.0f, 0.0f);
-			glm::vec3 right = glm::normalize(glm::cross(up, forward));
-
-			if (tipoCamara == 0) {
-				// [F] 1ra PERSONA: Aumentamos el multiplicador de forward de 0.6f a 1.2f 
-				// para que esté más adelante de la cara del modelo.
-				posCamara = posAvatar + glm::vec3(0.0f, 1.2f, 0.0f) + forward * 1.2f;
-				targetCamara = posCamara + forward;
+			if (tipoCamara == 0) { // F (Primera Persona)
+				posCamara = posAvatar + glm::vec3(0.0f, 1.2f, 0.0f) + forwardAvatar * 1.2f;
+				targetCamara = posCamara + forwardAvatar;
 			}
-			else if (tipoCamara == 1) {
-				// [G] 3ra PERSONA (Al hombro): Cambiamos forward de -3.0f a -5.0f 
-				// para que la cámara esté más atrás.
-				posCamara = posAvatar + glm::vec3(0.0f, 1.8f, 0.0f) - forward * 5.0f + right * 1.0f;
-				targetCamara = posAvatar + glm::vec3(0.0f, 1.2f, 0.0f) + forward * 5.0f;
+			else if (tipoCamara == 1) { // G (Hombro / Tercera Persona)
+				posCamara = posAvatar + glm::vec3(0.0f, 1.8f, 0.0f) - forwardAvatar * 5.0f + rightAvatar * 1.0f;
+				targetCamara = posAvatar + glm::vec3(0.0f, 1.2f, 0.0f) + forwardAvatar * 5.0f;
 			}
-			else if (tipoCamara == 2) {
-				// [H] AÉREA: Subimos la altura de 15.0f a 25.0f para ver más campo.
+			else if (tipoCamara == 2) { // H (Aérea)
 				posCamara = posAvatar + glm::vec3(0.0f, 25.0f, -0.1f);
 				targetCamara = posAvatar;
 			}
-
 			viewMatrix = glm::lookAt(posCamara, targetCamara, up);
 		}
 		
@@ -1417,71 +1459,7 @@ int main(){
 
 		// Desacoplamos el Shader para dejarlo limpio para el siguiente Frame
 
-		// ===============================================================
-// Animación del Avatar
-// ===============================================================		
-		if (estaMoviendo) {
-			float paso = deltaTime * velocidadTrayecto;
-			distanciaRecorrida += paso;
-			tiempoAnimacion += deltaTime * velocidadAnimacion;
 
-			// SECCIÓN 1 a 4 se mantienen con sus límites anteriores...
-			if (distanciaRecorrida <= 58.0f) {
-				cuerpoPosZ -= paso;
-				cuerpoRotY = 0.0f;
-			}
-			else if (distanciaRecorrida <= 193.0f) {
-				cuerpoPosX -= paso;
-				cuerpoRotY = 90.0f;
-			}
-			else if (distanciaRecorrida <= 213.0f) {
-				cuerpoPosZ += paso;
-				cuerpoRotY = 180.0f;
-			}
-			else if (distanciaRecorrida <= 238.0f) {
-				cuerpoPosX -= paso;
-				cuerpoRotY = 90.0f;
-			}
-			// SECCIÓN 6: Límite 253
-			else if (distanciaRecorrida <= 253.0f) {
-				cuerpoPosX -= paso;
-				cuerpoPosZ += paso;
-				cuerpoRotY = -225.0f;
-			}
-			// SECCIÓN 7: Límite 263
-			else if (distanciaRecorrida <= 263.0f) {
-				cuerpoPosX -= paso;
-				cuerpoRotY = -195.0f;
-			}
-			// SECCIÓN 8: Límite 268 (Nueva: Rota -90 y avanza 5 unidades)
-			else if (distanciaRecorrida <= 268.0f) {
-				// Asumiendo avance en la dirección resultante (puedes ajustar el eje si es necesario)
-				cuerpoPosX -= paso;
-				cuerpoRotY = -285.0f; // -195 - 90 = -285
-			}
-			else {
-				// FINAL: Detenerse
-				estaMoviendo = false;
-				cronometroEspera = 0.0f;
-			}
-		}
-		else {
-			// ESPERA DE 3 SEGUNDOS Y REINICIO
-			cronometroEspera += deltaTime;
-			if (cronometroEspera >= 3.0f) {
-				distanciaRecorrida = 0.0f;
-				cuerpoPosX = 120.0f;
-				cuerpoPosZ = -30.0f;
-				cuerpoRotY = 0.0f;
-				estaMoviendo = true;
-			}
-		}
-
-		rotacionAvatar = sin(tiempoAnimacion) * amplitudArticulacion;
-		// Calculamos la oscilación de brazos/piernas
-		//tiempoAnimacion += deltaTime * velocidadAnimacion;
-		//rotacionAvatar = sin(tiempoAnimacion) * amplitudArticulacion;
-		
 		// =============================================================
 		// INSTANCIA HW - CUERPO (EL PADRE)
 		// =============================================================
@@ -1545,6 +1523,20 @@ int main(){
 		model = glm::rotate(model, rotacionAvatar * toRadians, glm::vec3(1.0f, 0.0f, 0.0f)); // +35°
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		hw_BrazoIzquierdo.RenderModel();
+
+		// =============================================================
+		// INSTANCIA DE LA BANCA HW
+		// =============================================================
+		model = glm::mat4(1.0f);
+		// Posición: X=0, Y=0 (suelo), Z=-5 (atrás del inicio del avatar)
+		model = glm::translate(model, glm::vec3(120.0f, 0.0f, -25.0f));
+		// Escala: Ajusta el 0.5f si la banca sale muy grande o muy pequeña
+		model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
+		// Rotación: 180 grados para que mire hacia el frente si es necesario
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_banca.RenderModel();
 
 		
 
