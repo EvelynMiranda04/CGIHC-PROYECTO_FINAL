@@ -93,7 +93,7 @@ Model M07;	// --------
 Model M08;	// EDIFICIO
 Model M09;	// --------
 Model M10;	// --------
-Model M11;	// EDIFICIO
+//Model M11;	// EDIFICIO
 Model M12; // ESTRUCTURA
 Model M13;	// --------
 Model M14; // ESTRUCTURA
@@ -121,7 +121,7 @@ Model M32;
 // MODELOS LEAGUE OF LEGENDS:
 Model LOL_00;
 Model LOL_01;
-//Model LOL_02;
+Model LOL_02;
 Model LOL_03;
 Model LOL_04;
 Model LOL_05;
@@ -130,7 +130,12 @@ Model LOL_07;
 Model LOL_08;
 Model LOL_09;
 Model LOL_10;
-
+Model LOL_11;
+Model LOL_12;
+Model LOL_13;
+Model LOL_14;
+Model LOL_15;
+Model LOL_16;
 // ====================================================================================
 // 5. SISTEMA DE ILUMINACIÓN
 // Arreglos de luces que soporta el Shader.
@@ -342,7 +347,7 @@ int main()
 	M08 = Model();				M08.LoadModel("Models/08.obj");
 	//M09 = Model();				M09.LoadModel("Models/09.obj");
 	//M10 = Model();				M10.LoadModel("Models/10.obj");
-	M11 = Model();				M11.LoadModel("Models/11.obj");
+	//M11 = Model();				M11.LoadModel("Models/11.obj");
 	M12 = Model();				M12.LoadModel("Models/12.obj");
 	//M13 = Model();				M13.LoadModel("Models/13.obj");
 	M14 = Model();				M14.LoadModel("Models/14.obj");
@@ -372,7 +377,7 @@ int main()
 	// Modelos League Of Legends
 	LOL_00 = Model();			LOL_00.LoadModel("Models/LOL_00.obj");
 	LOL_01 = Model();			LOL_01.LoadModel("Models/LOL_01.obj");
-	//LOL_02 = Model();			LOL_02.LoadModel("Models/LOL_02.obj");
+	LOL_02 = Model();			LOL_02.LoadModel("Models/LOL_02.obj");
 	LOL_03 = Model();			LOL_03.LoadModel("Models/LOL_03.obj");
 	LOL_04 = Model();			LOL_04.LoadModel("Models/LOL_04.obj");
 	LOL_05 = Model();			LOL_05.LoadModel("Models/LOL_05.obj");
@@ -381,6 +386,12 @@ int main()
 	LOL_08 = Model();			LOL_08.LoadModel("Models/LOL_08.obj");
 	LOL_09 = Model();			LOL_09.LoadModel("Models/LOL_09.obj");
 	LOL_10 = Model();			LOL_10.LoadModel("Models/LOL_10.obj");
+	LOL_11 = Model();			LOL_11.LoadModel("Models/LOL_11.obj");
+	LOL_12 = Model();			LOL_12.LoadModel("Models/LOL_12.obj");
+	LOL_13 = Model();			LOL_13.LoadModel("Models/LOL_13.obj");
+	LOL_14 = Model();			LOL_14.LoadModel("Models/LOL_14.obj");
+	LOL_15 = Model();			LOL_15.LoadModel("Models/LOL_15.obj");
+	LOL_16 = Model();			LOL_16.LoadModel("Models/LOL_16.obj");
 
 
 
@@ -391,7 +402,7 @@ int main()
 		"11Amanecer", "12Amanecer", "21Dia", "22Dia",
 		"31Atardecer", "32Atardecer", "41Noche", "42Noche"
 	};
-
+	
 	for (int i = 0; i < 8; i++) {
 		std::vector<std::string> skyboxFaces;
 		skyboxFaces.push_back("Textures/Skybox/" + prefijosSkybox[i] + "_px.png"); // +X Derecha
@@ -406,6 +417,18 @@ int main()
 
 	Material_brillante = Material(4.0f, 256);
 	Material_opaco = Material(0.3f, 4);
+
+	// Arreglo para manejar las posiciones de los postes (X, Y, Z)
+	glm::vec3 posicionesPostes[8] = {
+		glm::vec3(-86.0f, 0.0f, -85.0f),  // Poste 1
+		glm::vec3(84.0f, 0.0f, -85.0f),   // Poste 2
+		glm::vec3(84.0f, 0.0f, 84.0f),    // Poste 3
+		glm::vec3(-86.0f, 0.0f, 84.0f),   // Poste 4
+		glm::vec3(-86.0f, 0.0f, 0.0f),    // Poste 5
+		glm::vec3(84.0f, 0.0f, 0.0f),     // Poste 6
+		glm::vec3(0.0f, 0.0f, 75.0f),     // Poste 7
+		glm::vec3(0.0f, 0.0f, -75.0f)     // Poste 8
+	};
 
 
 	// ====================================================================================
@@ -432,18 +455,20 @@ int main()
 
 	// 2. LUCES PUNTUALES (Point Lights) --------------------------------------------------
 	unsigned int pointLightCount = 0;
-	// Luz de la Lámpara Hextech (Luz puntual BLANCA)
-	pointLights[0] = PointLight(1.0f, 1.0f, 1.0f,	// Color Blanco (RGB)
-		1.0f, 1.0f,						// Intensidad (alta para que ilumine bien)
-		0.0f, 5.75f, -7.0f,				// Posición: Misma X, Y, Z
-		1.0f, 0.09f, 0.032f);			// Atenuación para difuminado realista
-	pointLightCount++;
-	// LUZ DEL PEZ ABISAL (Índice 1)
-	pointLights[1] = PointLight(0.0f, 0.0f, 1.0f,	// Color Azul Puro (RGB)
-		1.0f, 1.0f,						// Intensidad
-		0.0f, 0.0f, 0.0f,				// Posición (Se sobreescribe en el while)
-		1.0f, 0.7f, 1.8f);				// Atenuación	
-	pointLightCount++;
+	// Inicializar las 8 luces de los postes
+	for (int i = 0; i < 8; i++) {
+		// Color amarillento (1.0, 0.9, 0.5)
+		// Posición: posición del poste + 15 en Y
+		pointLights[i] = PointLight(1.0f, 0.9f, 0.5f,
+			0.5f, 1.0f, // Intensidad ambiental y difusa
+			posicionesPostes[i].x, posicionesPostes[i].y + 15.0f, posicionesPostes[i].z,
+			1.0f, 0.05f, 0.01f); // Atenuación suave para que alcance a iluminar el piso
+	}
+	
+	pointLightCount = 8;	// 8 nuevas
+
+
+
 	// 3. LUCES SPOT (Linternas y Faros) --------------------------------------------------
 	unsigned int spotLightCount = 0;
 	// Índice 0: Faro AZUL (Coche) - Este será sobreescrito en el while
@@ -552,9 +577,11 @@ int main()
 	// ====================================================================================
 	// GAME LOOP (Ciclo Principal de Renderizado)
 	// ====================================================================================
+	// Agrégalo justo antes del while
+	lastTime = glfwGetTime();
+
 	while (!mainWindow.getShouldClose())
 	{
-
 		// Control de cuadros por segundo (Cálculo del DeltaTime)
 		now = glfwGetTime();
 		deltaTime = now - lastTime;
@@ -685,10 +712,26 @@ int main()
 		// Empaquetamos las luces calculadas y las enviamos a la GPU.
 		// ====================================================================================
 		shaderList[0].SetDirectionalLight(&arregloLucesDireccionales[indiceSkyboxActual]);
+		
+
 		unsigned int lucesPuntualesActivas = 0;
-		// (La lógica para encender/apagar focos iría aquí, agregando al arreglo 'pointLights')
+
+		// Si el skybox es 11Amanecer(0), 32Atardecer(5), 41Noche(6) o 42Noche(7)...
+		if (indiceSkyboxActual == 0 || indiceSkyboxActual == 5 ||
+			indiceSkyboxActual == 6 || indiceSkyboxActual == 7)
+		{
+			// Encendemos las 8 luminarias
+			lucesPuntualesActivas = 8;
+		}
+
+		// Mandamos al shader únicamente la cantidad de luces activas que calculamos
 		shaderList[0].SetPointLights(pointLights, lucesPuntualesActivas);
+
+
+
 		shaderList[0].SetSpotLights(spotLights, 0); // Modifica el 0 por tu contador de Spots activos
+		
+		
 		// Limpieza de offsets y color para evitar arrastrar residuos visuales a los modelos
 		color = glm::vec3(1.0f, 1.0f, 1.0f);
 		toffset = glm::vec2(0.0f, 0.0f);
@@ -787,12 +830,7 @@ int main()
 		Ala2T.RenderModel();
 		*/
 
-		// LÁMPARA HEXTECH
-		// ====================================================================================
-		model = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, -2.0f, -7.0f));
-		model = glm::scale(model, glm::vec3(0.10f, 0.10f, 0.10f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		//Lampara_M.RenderModel();
+	
 
 		// ESCENARIO BUENO
 		glEnable(GL_BLEND);
@@ -807,7 +845,7 @@ int main()
 		model = glm::rotate(model, 137 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		LOL_00.RenderModel();
-		
+
 		// Poro 1
 		model = glm::mat4(1.0);
 		model = glm::translate(glm::mat4(1.0), glm::vec3(-89.01f, 0.96f, -41.0f));
@@ -863,6 +901,102 @@ int main()
 		model = glm::rotate(model, 25 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		LOL_01.RenderModel();
+
+		// NPC 1 - Anivia
+		model = glm::mat4(1.0);
+		model = glm::translate(glm::mat4(1.0), glm::vec3(-26.0f, 22.0f, -42.0f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		LOL_02.RenderModel();
+
+		// NPC 2 - Xayah
+		model = glm::mat4(1.0);
+		model = glm::translate(glm::mat4(1.0), glm::vec3(-65.0f, 0.0f, -75.0f));
+		//model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		LOL_11.RenderModel();
+
+
+		// NPC 3 - Annie
+		model = glm::mat4(1.0);
+		model = glm::translate(glm::mat4(1.0), glm::vec3(-70.0f, 0.0f, -40.0f));
+		//model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		LOL_13.RenderModel();
+
+		// NPC 4 - Tristana
+		model = glm::mat4(1.0);
+		model = glm::translate(glm::mat4(1.0), glm::vec3(-125.0f, 0.0f, -75.0f));
+		//model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		LOL_14.RenderModel();
+		
+		// Montura Sejuani
+		model = glm::mat4(1.0);
+		model = glm::translate(glm::mat4(1.0), glm::vec3(-125.0f, 0.0f, -90.0f));
+		model = glm::rotate(model, 270 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		LOL_15.RenderModel();
+
+		// Mazo Poppy
+		model = glm::mat4(1.0);
+		model = glm::translate(glm::mat4(1.0), glm::vec3(-114.0f, 0.0f, -25.0f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		LOL_16.RenderModel();
+
+
+		// LUMINARIA --------------------------------------------------------------------------------
+		/*
+		// Hextech 1
+		model = glm::mat4(1.0);
+		model = glm::translate(glm::mat4(1.0), glm::vec3(-86.0f, 0.0f, -85.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		LOL_12.RenderModel();
+		// Luminaria 2
+		model = glm::mat4(1.0);
+		model = glm::translate(glm::mat4(1.0), glm::vec3(84.0f, 0.0f, -85.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		LOL_12.RenderModel();
+		// Luminaria 3
+		model = glm::mat4(1.0);
+		model = glm::translate(glm::mat4(1.0), glm::vec3(84.0f, 0.0f, 84.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		LOL_12.RenderModel();
+		// Luminaria 4
+		model = glm::mat4(1.0);
+		model = glm::translate(glm::mat4(1.0), glm::vec3(-86.0f, 0.0f, 84.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		LOL_12.RenderModel();
+		// Hextech 5
+		model = glm::mat4(1.0);
+		model = glm::translate(glm::mat4(1.0), glm::vec3(-86.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		LOL_12.RenderModel();
+		// Luminaria 6
+		model = glm::mat4(1.0);
+		model = glm::translate(glm::mat4(1.0), glm::vec3(84.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		LOL_12.RenderModel();
+		// Luminaria 7
+		model = glm::mat4(1.0);
+		model = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, 0.0f, 75.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		LOL_12.RenderModel();
+		// Luminaria 8
+		model = glm::mat4(1.0);
+		model = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, 0.0f, -75.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		LOL_12.RenderModel();
+		*/
+
+		// RENDER DE LUMINARIAS USANDO JERARQUÍA
+		for (int i = 0; i < 8; i++) {
+			model = glm::mat4(1.0);
+			model = glm::translate(model, posicionesPostes[i]); // Usa la posición del arreglo
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			LOL_12.RenderModel();
+		}
 
 		// Torreta 1
 		model = glm::mat4(1.0);
@@ -1392,12 +1526,6 @@ int main()
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M12.RenderModel();
 
-		// Estructura (Al lado de la nave)
-		model = glm::mat4(1.0);
-		model = glm::translate(model, glm::vec3(40.0f, 0.0f, -30.0f));
-		//model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		M11.RenderModel();
 
 		// LINEA DE EDIFICIOS -----------------------------------------------------------------
 
