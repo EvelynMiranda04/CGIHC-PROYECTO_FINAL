@@ -15,6 +15,8 @@ Window::Window()
 	accionG = false;
 	accionH = false;
 	accionJ = false;
+	for (int i = 0; i < 8; i++) { statusLucesSpot[i] = false; } // Todas inician apagadas
+	contadorTeclaB = 0;
 	// ====================================================================================
 	
 }
@@ -29,11 +31,15 @@ Window::Window(GLint windowWidth, GLint windowHeight)
 	lastX = 0.0f;
 	lastY = 0.0f;
 
+	// ====================================================================================
 	// Inicialización nuevas banderas
 	accionF = false;
 	accionG = false;
 	accionH = false;
 	accionJ = false;
+	for (int i = 0; i < 8; i++) { statusLucesSpot[i] = false; } // Todas inician apagadas
+	contadorTeclaB = 0;
+	// ====================================================================================
 	for (size_t i = 0; i < 1024; i++)
 	{
 		keys[i] = 0;
@@ -141,7 +147,30 @@ void Window::ManejaTeclado(GLFWwindow* window, int key, int code, int action, in
 	}
 
 	// ====================================================================================
-	// 4. REGISTRO DE ESTADO GENERAL (Cámara y teclas de pulsación continua)
+	// 3. ON/OFF DE LUCES SPOT (Teclas 1-8)
+	// ====================================================================================
+	// Teclas del 1 al 8 para controlar Luces Spot
+	if (key >= GLFW_KEY_1 && key <= GLFW_KEY_8 && action == GLFW_PRESS) {
+		int indiceLuz = key - GLFW_KEY_1; // Convierte la tecla (1-8) a índice (0-7)
+		theWindow->statusLucesSpot[indiceLuz] = !theWindow->statusLucesSpot[indiceLuz];
+	}
+
+	// ====================================================================================
+	// 5. ANIMACION LOCOMOTORAS (Tecla B)
+	// ====================================================================================
+	// [B]: Gatillo para la máquina de estados de los trenes (Ciclo 0-1-2-3-4)
+	if (key == GLFW_KEY_B && action == GLFW_PRESS) {
+		theWindow->contadorTeclaB++;
+
+		if (theWindow->contadorTeclaB > 4) {
+			theWindow->contadorTeclaB = 0; // Reinicio automático al llegar al final
+		}
+
+		printf("Maquina de Estados - Gatillo B: %d\n", theWindow->contadorTeclaB);
+	}
+
+	// ====================================================================================
+	// 7. REGISTRO DE ESTADO GENERAL (Cámara y teclas de pulsación continua)
 	// ====================================================================================
 	if (key >= 0 && key < 1024)
 	{
