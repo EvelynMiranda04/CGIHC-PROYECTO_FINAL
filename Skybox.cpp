@@ -19,7 +19,12 @@ Skybox::Skybox(std::vector<std::string> faceLocations)
 	for (size_t i = 0; i < 6; i++)
 	{
 
-		unsigned char *texData = stbi_load(faceLocations[i].c_str(), &width, &height, &bitDepth, 0); //el tipo unsigned char es para un array de bytes de la imagen, obtener datos de la imagen 
+		
+		// El 3 fuerza a que sea RGB:
+		unsigned char* texData = stbi_load(faceLocations[i].c_str(), &width, &height, &bitDepth, 3); // CAMBIO PARA LOS SKYBOXES QUE PUSIMOS
+
+
+		//unsigned char *texData = stbi_load(faceLocations[i].c_str(), &width, &height, &bitDepth, 0); //el tipo unsigned char es para un array de bytes de la imagen, obtener datos de la imagen 
 		if (!texData)
 		{
 			printf("No se encontró : %s", faceLocations[i].c_str());

@@ -10,8 +10,11 @@ Window::Window()
 	}
 	mouseFirstMoved = true;
 	// ====================================================================================
-	RotLlantas = 0.0f;		//Coche
-	colorFaroCoche = 0;		//Coche
+	// Inicialización nuevas banderas
+	accionF = false;
+	accionG = false;
+	accionH = false;
+	accionJ = false;
 	// ====================================================================================
 	
 }
@@ -20,15 +23,24 @@ Window::Window(GLint windowWidth, GLint windowHeight)
 	width = windowWidth;
 	height = windowHeight;
 	mouseFirstMoved = true;
-	// ====================================================================================
-	RotLlantas = 0.0f;		//Coche
-	colorFaroCoche = 0;		//Coche
-	// ====================================================================================
+
+	xChange = 0.0f;
+	yChange = 0.0f;
+	lastX = 0.0f;
+	lastY = 0.0f;
+
+	// Inicialización nuevas banderas
+	accionF = false;
+	accionG = false;
+	accionH = false;
+	accionJ = false;
 	for (size_t i = 0; i < 1024; i++)
 	{
 		keys[i] = 0;
 	}
 }
+
+
 int Window::Initialise()
 {
 	//Inicialización de GLFW
@@ -116,17 +128,17 @@ void Window::ManejaTeclado(GLFWwindow* window, int key, int code, int action, in
 		glfwSetWindowShouldClose(window, GL_TRUE);
 	}
 
-	
-
-	// [I]: Ciclar colores del faro del coche (Arreglo de SpotLights)
-	if (key == GLFW_KEY_I && action == GLFW_PRESS) {
-		theWindow->colorFaroCoche++;
-		if (theWindow->colorFaroCoche > 5) { // De Magenta (5) reinicia a Rojo (0)
-			theWindow->colorFaroCoche = 0;
-		}
+	// ====================================================================================
+	// 2. CONTROLES DE CAMARA
+	// ====================================================================================
+	// Captura de banderas tipo "Trigger" (un solo pulso)
+	if (action == GLFW_PRESS)
+	{
+		if (key == GLFW_KEY_F) theWindow->accionF = true;
+		if (key == GLFW_KEY_G) theWindow->accionG = true;
+		if (key == GLFW_KEY_H) theWindow->accionH = true;
+		if (key == GLFW_KEY_J) theWindow->accionJ = true;
 	}
-
-
 
 	// ====================================================================================
 	// 4. REGISTRO DE ESTADO GENERAL (Cámara y teclas de pulsación continua)

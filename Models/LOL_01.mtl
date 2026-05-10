@@ -1,0 +1,13 @@
+# Blender 5.1.1 MTL File: 'LOL01Proy.blend'
+# www.blender.org
+
+newmtl LOL01_1lambert1
+Ns 54.299992
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 2
+map_Kd LOL01_1.png
+map_d LOL01_1.png
+map_Bump -bm 1.000000 lambert1_Flattened_Bump Map.tif

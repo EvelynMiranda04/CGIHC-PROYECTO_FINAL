@@ -1,0 +1,12 @@
+# Blender 5.1.1 MTL File: 'LOL05.blend'
+# www.blender.org
+
+newmtl Scene_-_Root
+Ns 220.177521
+Ka 0.638462 0.638462 0.638462
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd LOL05_1.jpeg
