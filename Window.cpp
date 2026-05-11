@@ -10,8 +10,13 @@ Window::Window()
 	}
 	mouseFirstMoved = true;
 	// ====================================================================================
-	RotLlantas = 0.0f;		//Coche
-	colorFaroCoche = 0;		//Coche
+	// Inicialización nuevas banderas
+	accionF = false;
+	accionG = false;
+	accionH = false;
+	accionJ = false;
+	for (int i = 0; i < 8; i++) { statusLucesSpot[i] = false; } // Todas inician apagadas
+	contadorTeclaB = 0;
 	// ====================================================================================
 	
 }
@@ -26,8 +31,15 @@ Window::Window(GLint windowWidth, GLint windowHeight)
 	lastX = 0.0f;
 	lastY = 0.0f;
 
-	RotLlantas = 0.0f;		//Coche
-	colorFaroCoche = 0;		//Coche
+	// ====================================================================================
+	// Inicialización nuevas banderas
+	accionF = false;
+	accionG = false;
+	accionH = false;
+	accionJ = false;
+	for (int i = 0; i < 8; i++) { statusLucesSpot[i] = false; } // Todas inician apagadas
+	contadorTeclaB = 0;
+	// ====================================================================================
 	for (size_t i = 0; i < 1024; i++)
 	{
 		keys[i] = 0;
@@ -122,20 +134,43 @@ void Window::ManejaTeclado(GLFWwindow* window, int key, int code, int action, in
 		glfwSetWindowShouldClose(window, GL_TRUE);
 	}
 
-	
-
-	// [I]: Ciclar colores del faro del coche (Arreglo de SpotLights)
-	if (key == GLFW_KEY_I && action == GLFW_PRESS) {
-		theWindow->colorFaroCoche++;
-		if (theWindow->colorFaroCoche > 5) { // De Magenta (5) reinicia a Rojo (0)
-			theWindow->colorFaroCoche = 0;
-		}
+	// ====================================================================================
+	// 2. CONTROLES DE CAMARA
+	// ====================================================================================
+	// Captura de banderas tipo "Trigger" (un solo pulso)
+	if (action == GLFW_PRESS)
+	{
+		if (key == GLFW_KEY_F) theWindow->accionF = true;
+		if (key == GLFW_KEY_G) theWindow->accionG = true;
+		if (key == GLFW_KEY_H) theWindow->accionH = true;
+		if (key == GLFW_KEY_J) theWindow->accionJ = true;
 	}
 
-
+	// ====================================================================================
+	// 3. ON/OFF DE LUCES SPOT (Teclas 1-8)
+	// ====================================================================================
+	// Teclas del 1 al 8 para controlar Luces Spot
+	if (key >= GLFW_KEY_1 && key <= GLFW_KEY_8 && action == GLFW_PRESS) {
+		int indiceLuz = key - GLFW_KEY_1; // Convierte la tecla (1-8) a índice (0-7)
+		theWindow->statusLucesSpot[indiceLuz] = !theWindow->statusLucesSpot[indiceLuz];
+	}
 
 	// ====================================================================================
-	// 4. REGISTRO DE ESTADO GENERAL (Cámara y teclas de pulsación continua)
+	// 5. ANIMACION LOCOMOTORAS (Tecla B)
+	// ====================================================================================
+	// [B]: Gatillo para la máquina de estados de los trenes (Ciclo 0-1-2-3-4)
+	if (key == GLFW_KEY_B && action == GLFW_PRESS) {
+		theWindow->contadorTeclaB++;
+
+		if (theWindow->contadorTeclaB > 4) {
+			theWindow->contadorTeclaB = 0; // Reinicio automático al llegar al final
+		}
+
+		printf("Maquina de Estados - Gatillo B: %d\n", theWindow->contadorTeclaB);
+	}
+
+	// ====================================================================================
+	// 7. REGISTRO DE ESTADO GENERAL (Cámara y teclas de pulsación continua)
 	// ====================================================================================
 	if (key >= 0 && key < 1024)
 	{

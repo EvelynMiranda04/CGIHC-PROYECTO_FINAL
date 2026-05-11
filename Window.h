@@ -14,13 +14,23 @@ public:
 	GLfloat getXChange();
 	GLfloat getYChange();
 	// ====================================================================================
-	// --- VARIABLES PARA EL COCHE ---
-	GLfloat getRotacionLlantas() { return RotLlantas; } // Rotación Llantas
-	int getColorFaroCoche() { return colorFaroCoche; }
+	bool getAccionF() { return accionF; }
+	void apagarAccionF() { accionF = false; }
+
+	bool getAccionG() { return accionG; }
+	void apagarAccionG() { accionG = false; }
+
+	bool getAccionH() { return accionH; }
+	void apagarAccionH() { accionH = false; }
+
+	bool getAccionJ() { return accionJ; }
+	void apagarAccionJ() { accionJ = false; }
+
+	bool* getStatusLucesSpot() { return statusLucesSpot; }
+	int getContadorTeclaB() { return contadorTeclaB; }
 	// ====================================================================================
 	
-	bool getShouldClose() {
-		return  glfwWindowShouldClose(mainWindow);}
+	bool getShouldClose() { return  glfwWindowShouldClose(mainWindow); }
 	bool* getsKeys() { return keys; }
 	void swapBuffers() { return glfwSwapBuffers(mainWindow); }
 	
@@ -36,9 +46,13 @@ private:
 	GLfloat xChange;
 	GLfloat yChange;
 	// ====================================================================================
-	// --- VARIABLES DE ANIMACIÓN DEL COCHE ---
-	GLfloat RotLlantas;
-	int colorFaroCoche;
+	// Nuevas variables booleanas
+	bool accionF;
+	bool accionG;
+	bool accionH;
+	bool accionJ;
+	bool statusLucesSpot[8];	// Estado de las 8 luces
+	int contadorTeclaB;			// AnimaciÃ³n 2 (Avance locomotoras)
 	// ====================================================================================
 	
 	
