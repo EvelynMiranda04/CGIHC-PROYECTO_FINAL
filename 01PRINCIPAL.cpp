@@ -65,6 +65,10 @@ float cuerpoRotY = 0.0f; // Empezamos en 0 porque las piezas ya tienen el 180 in
 bool estaMoviendo = true;
 float cronometroEspera = 0.0f;
 float velocidadTrayecto = 0.10f;
+float rotacionGlobal;
+float radRot;
+bool isMoving;
+float velocity;
 
 // ==========================================
 // 3.2 - VARIABLES CICLO DYN (Evelyn)
@@ -94,7 +98,18 @@ float escalaHumoAnimada = 0.0f;		// Escala final después de cálculos
 glm::mat4 matrizHumoChico = glm::mat4(1.0f);	// Guardado de posición de la cabina 
 glm::mat4 matrizHumoLargo = glm::mat4(1.0f);	// Guardado de posición de la cabina 
 
-
+float offsetY;
+float offsetZ;
+int gatilloB;
+float progreso;
+float pSuave;
+float escalaBase;
+float deltaX;
+float deltaY;
+float cx, cz, cRotY;
+float lx, lz, lRotY;
+float posX, posZ, rotY;
+int i;
 
 // ====================================================================================
 // 4. DECLARACIÓN DE OBJETOS DE LA ESCENA
@@ -119,7 +134,8 @@ Model M12, M23;							// ESTRUCTURAS (Edificios no tan steampunk)
 Model M28_1, M28_2, M28_3, M28_4;		// EDIFICIOS "Steampunk" Editados en blender
 // --- DECORACIÓN 1
 Model M15, M16, M17, M18, M19;			// FUENTE - NAVE - COCHE 1 - BASURA - BANCA		
-Model M25, M26, M31, M32;				// LIBRERÍA - PINO - COCHE 2 - CEREZO
+Model M25, M26, M31, M32, M33_1;		// LIBRERÍA - PINO - COCHE 2 - CEREZO - SEÑAL F1
+Model M33_2, M34;							// SEÑAL F2, CARTEL
 // --- DESCARTADOS
 Model M27, M28, M29, M30;				// Usados dentro de blender
 Model M07, M09, M10, M11, M13, M20;		// Por su no uso
@@ -132,7 +148,7 @@ Model LOL_12, LOL_13, LOL_14, LOL_15;	// XAYAH - ANNIE - TRISTANA - SEJUANI
 Model LOL_03, LOL_06, LOL_07, LOL_08;	// TORRETA - WARD - MAESTRÍA - MAZO JAYCE
 Model LOL_09, LOL_10, LOL_11, LOL_16;	// AHRI - BASE - LUMINARIA - MAZO POPPY
 Model M24;								// RELOJ?
-Texture texturaHumo;
+Texture texturaHumo, texturaPoro;		// HUMO - PORO BLUSH
 
 // ==========================================
 // 4.2 - TEXTURAS Y MODELOS (Juan Pablo)
@@ -483,6 +499,9 @@ int main()
 	M30 = Model();				M30.LoadModel("Models/30.obj");
 	M31 = Model();				M31.LoadModel("Models/31.obj");
 	M32 = Model();				M32.LoadModel("Models/32.obj");
+	M33_1 = Model();			M33_1.LoadModel("Models/33-1.obj");
+	M33_2 = Model();			M33_2.LoadModel("Models/33-2.obj");
+	M34 = Model();				M34.LoadModel("Models/34.obj");
 	LOL_00 = Model();			LOL_00.LoadModel("Models/LOL_00.obj");
 	LOL_01 = Model();			LOL_01.LoadModel("Models/LOL_01.obj");
 	LOL_02 = Model();			LOL_02.LoadModel("Models/LOL_02.obj");
@@ -501,6 +520,8 @@ int main()
 	LOL_15 = Model();			LOL_15.LoadModel("Models/LOL_15.obj");
 	LOL_16 = Model();			LOL_16.LoadModel("Models/LOL_16.obj");
 	texturaHumo = Texture("Textures/HUMO.tga");		texturaHumo.LoadTextureA();
+	texturaPoro = Texture("Textures/35_1.png");	texturaPoro.LoadTextureA();
+
 	// -----------------------> 7.2.2 - Juan Pablo
 	hw_cuerpo = Model();			hw_cuerpo.LoadModel("Models/hw_cuerpo.obj");
 	hw_cabeza = Model();			hw_cabeza.LoadModel("Models/hw_cabeza.obj");
@@ -521,7 +542,7 @@ int main()
 		"11Amanecer", "12Amanecer", "21Dia", "22Dia",
 		"31Atardecer", "32Atardecer", "41Noche", "42Noche"
 	};
-	for (int i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++) {
 		std::vector<std::string> skyboxFaces;
 		skyboxFaces.push_back("Textures/Skybox/" + prefijosSkybox[i] + "_px.png"); // +X Derecha
 		skyboxFaces.push_back("Textures/Skybox/" + prefijosSkybox[i] + "_nx.png"); // -X Izquierda
@@ -578,7 +599,7 @@ int main()
 
 	// ----- 7.4.3: LUCES PUNTUALES (Point Lights)
 	unsigned int pointLightCount = 0;
-	for (int i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++) {
 		pointLights[i] = PointLight(1.0f, 0.9f, 0.5f,	// Color amarillento (1.0, 0.9, 0.5)
 			0.5f, 1.0f,									// Intensidad ambiental y difusa
 			posicionesPostes[i].x, posicionesPostes[i].y + 15.0f, posicionesPostes[i].z,	//+15Y
@@ -586,13 +607,15 @@ int main()
 	}
 	pointLightCount = 8;
 
+	
+
 	// ----- 7.4.4: LUCES SPOT (Linternas y Faros) 
 	unsigned int spotLightCount = 0;
 	// Edificios M28 (Índices 0 a 5) - Luces fijas con dirección hacia el piso
-	for (int i = 0; i < 6; i++) {
-		float offsetY = 33.0f;							// +33Y
+	for (i = 0; i < 6; i++) {
+		offsetY = 33.0f;							// +33Y
 		// Para Z: +125 restamos 14  // -125 sumamos 14
-		float offsetZ = (posicionesEdificiosM28[i].z > 0) ? -14.0f : 14.0f;
+		offsetZ = (posicionesEdificiosM28[i].z > 0) ? -14.0f : 14.0f;
 		// Calculamos posicion de la luz con jerarquía (Edificio + Offset)
 		glm::vec3 posicionLuz = posicionesEdificiosM28[i] + glm::vec3(0.0f, offsetY, offsetZ);
 		spotLights[i] = SpotLight(1.0f, 0.9f, 0.5f,  // Color amarillo claro
@@ -667,14 +690,12 @@ int main()
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 
-
-
-
+		
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		// ----- 8.1.3: LÓGICA DE ANIMACION B2 - Locomotora (Evelyn)
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-		int gatilloB = mainWindow.getContadorTeclaB();	// ¿Cuantas veces hemos apretado B?
+		gatilloB = mainWindow.getContadorTeclaB();	// ¿Cuantas veces hemos apretado B?
 
 		// RESET AUTOMÁTICO AL VOLVER A 0
 		if (gatilloB == 0) {
@@ -691,10 +712,10 @@ int main()
 			// --- ETAPA 1: Avanzar y frenar suavemente ---
 			if (subEtapaTrenChico == 1) {
 				temporizadorTrenChico += deltaTime;
-				float progreso = temporizadorTrenChico / duracionEtapaSkybox;
+				progreso = temporizadorTrenChico / duracionEtapaSkybox;
 				if (progreso >= 1.0f) progreso = 1.0f;
 				// Función seno:Para frenado suave
-				float pSuave = sin(progreso * 1.570796f);	// 1.570796f es PI/2
+				pSuave = sin(progreso * 1.570796f);	// 1.570796f es PI/2
 				distanciaTrenChico = 317.5f * pSuave;		// 317.5 dist_total a recorrer en esta etapa
 				if (progreso >= 1.0f && gatilloB >= 2) {	// ¿B se apreto ya dos veces y llegamos a la meta?
 					subEtapaTrenChico = 2;
@@ -713,10 +734,10 @@ int main()
 			// --- ETAPA 3: Arranque lento (Ease-In) en X ---
 			else if (subEtapaTrenChico == 3) {
 				temporizadorTrenChico += deltaTime;
-				float progreso = temporizadorTrenChico / duracionEtapaSkybox;
+				progreso = temporizadorTrenChico / duracionEtapaSkybox;
 				if (progreso >= 1.0f) progreso = 1.0f;
 				// Función cuadrática: Inicia lento (cerca de 0) y acelera progresivamente
-				float pSuave = progreso * progreso;			// Curva cuadrática para arranque lento
+				pSuave = progreso * progreso;			// Curva cuadrática para arranque lento
 				distanciaTrenChico = 317.5f + (119.5f * pSuave); // 119.5 es la distancia extra a recorrer
 				// Transición automática al llegar a la curva
 				if (progreso >= 1.0f) {
@@ -727,7 +748,7 @@ int main()
 			// --- ETAPA 4: Curva ---
 			else if (subEtapaTrenChico == 4) {
 				temporizadorTrenChico += deltaTime;
-				float progreso = temporizadorTrenChico / (duracionEtapaSkybox / 2.0f);
+				progreso = temporizadorTrenChico / (duracionEtapaSkybox / 2.0f);
 				if (progreso >= 1.0f) progreso = 1.0f;
 				distanciaTrenChico = 437.0f + (57.88f * progreso); // 57.88 es la distancia extra a recorrer
 				if (progreso >= 1.0f) {
@@ -738,7 +759,7 @@ int main()
 			// --- ETAPA 5: Avance en Z ---
 			else if (subEtapaTrenChico == 5) {
 				temporizadorTrenChico += deltaTime;
-				float progreso = temporizadorTrenChico / duracionEtapaSkybox;
+				progreso = temporizadorTrenChico / duracionEtapaSkybox;
 				if (progreso >= 1.0f) progreso = 1.0f;
 				distanciaTrenChico = 494.88f + (307.75f * progreso); // 307.75 es la distancia extra a recorrer
 			}
@@ -749,9 +770,9 @@ int main()
 			// --- ETAPA 6: Avanzar y frenar suavemente ---
 			if (subEtapaTrenLargo == 6) {
 				temporizadorTrenLargo += deltaTime;
-				float progreso = temporizadorTrenLargo / duracionEtapaSkybox;
+				progreso = temporizadorTrenLargo / duracionEtapaSkybox;
 				if (progreso >= 1.0f) progreso = 1.0f;
-				float pSuave = sin(progreso * 1.570796f);
+				pSuave = sin(progreso * 1.570796f);
 				distanciaTrenLargo = 316.0f * pSuave; // 316.0 es la distancia de 330 a 14
 				// Transición a Etapa 7 SOLO si ya apretamos la B por cuarta vez
 				if (progreso >= 1.0f && gatilloB >= 4) {
@@ -770,9 +791,9 @@ int main()
 			// --- ETAPA 8: Arranque lento en X ---
 			else if (subEtapaTrenLargo == 8) {
 				temporizadorTrenLargo += deltaTime;
-				float progreso = temporizadorTrenLargo / duracionEtapaSkybox;
+				progreso = temporizadorTrenLargo / duracionEtapaSkybox;
 				if (progreso >= 1.0f) progreso = 1.0f;
-				float pSuave = progreso * progreso;
+				pSuave = progreso * progreso;
 				distanciaTrenLargo = 316.0f + (135.0f * pSuave); // 135 es la distancia de 14 a -121
 				if (progreso >= 1.0f) {
 					subEtapaTrenLargo = 9;
@@ -782,7 +803,7 @@ int main()
 			// --- ETAPA 9: La Curva de 90° (Derecha) ---
 			else if (subEtapaTrenLargo == 9) {
 				temporizadorTrenLargo += deltaTime;
-				float progreso = temporizadorTrenLargo / (duracionEtapaSkybox / 2.0f);
+				progreso = temporizadorTrenLargo / (duracionEtapaSkybox / 2.0f);
 				if (progreso >= 1.0f) progreso = 1.0f;
 				distanciaTrenLargo = 451.0f + (60.3f * progreso); // 60.3 es la distancia extra a recorrer
 				if (progreso >= 1.0f) {
@@ -793,7 +814,7 @@ int main()
 			// --- ETAPA 10: Avance recto en Z ---
 			else if (subEtapaTrenLargo == 10) {
 				temporizadorTrenLargo += deltaTime;
-				float progreso = temporizadorTrenLargo / duracionEtapaSkybox;
+				progreso = temporizadorTrenLargo / duracionEtapaSkybox;
 				if (progreso >= 1.0f) progreso = 1.0f;
 				distanciaTrenLargo = 511.3f + (452.35f * progreso);	// 452.35 es la distancia extra a recorrer
 			}
@@ -825,10 +846,10 @@ int main()
 		if (temporizadorCicloHumo >= 200.0f) {	// El ciclo completo dura 200.0f
 			temporizadorCicloHumo -= 200.0f;	
 		}
-		float escalaBase = 0.0f;
+		escalaBase = 0.0f;
 		// ETAPA 1 y 2 (Primeros 50 frames): De -3Y a 0Y expandiendo escala de 0 a 5.
 		if (temporizadorCicloHumo <= 50.0f) {
-			float progreso = temporizadorCicloHumo / 50.0f; // Normalizamos de 0.0 a 1.0
+			progreso = temporizadorCicloHumo / 50.0f; // Normalizamos de 0.0 a 1.0
 			offsetYHumo = -3.0f + (progreso * 3.0f);        // Sube de -3 a 0
 			escalaBase = progreso * 5.0f;                   // Crece de 0 a 5
 		}
@@ -839,7 +860,7 @@ int main()
 		}
 		// ETAPA 4 (Últimos 50 frames): De 0Y a +3Y encogiendo escala de 5 a 0
 		else {
-			float progreso = (temporizadorCicloHumo - 150.0f) / 50.0f; // Normalizamos de 0.0 a 1.0
+			progreso = (temporizadorCicloHumo - 150.0f) / 50.0f; // Normalizamos de 0.0 a 1.0
 			offsetYHumo = progreso * 3.0f;               // Sube de 0 a +3
 			escalaBase = 5.0f - (progreso * 5.0f);       // Se encoge de 5 a 0
 		}
@@ -870,8 +891,8 @@ int main()
 		if (mainWindow.getAccionJ()) { tipoCamara = 3; mainWindow.apagarAccionJ(); }
 
 		// Leer el ratón una sola vez
-		float deltaX = mainWindow.getXChange();
-		float deltaY = mainWindow.getYChange();
+		deltaX = mainWindow.getXChange();
+		deltaY = mainWindow.getYChange();
 
 		// --- 2. LÓGICA DEL RATÓN ---
 		if (tipoCamara == 3) {
@@ -883,11 +904,11 @@ int main()
 			// Ajusta el 0.3f si quieres que el ratón gire al personaje más rápido o más lento
 			cuerpoRotY -= deltaX * 0.3f;
 		}
-
+		
 		// --- 3. CÁLCULO DE VECTORES DIRECCIONALES DEL AVATAR ---
 		glm::vec3 posAvatar(cuerpoPosX, 1.0f, cuerpoPosZ);
-		float rotacionGlobal = 180.0f + cuerpoRotY;
-		float radRot = rotacionGlobal * toRadians;
+		rotacionGlobal = 180.0f + cuerpoRotY;
+		radRot = rotacionGlobal * toRadians;
 
 		// Vector que apunta hacia el frente del personaje
 		glm::vec3 forwardAvatar(sin(radRot), 0.0f, cos(radRot));
@@ -896,8 +917,8 @@ int main()
 		glm::vec3 rightAvatar = glm::normalize(glm::cross(up, forwardAvatar));
 
 		// --- 4. CONTROL DE MOVIMIENTO (A, W, S, D) Y ANIMACIÓN ---
-		bool isMoving = false;
-		float velocity = 0.15f * deltaTime; //la velocidad de caminar
+		isMoving = false;
+		velocity = 0.15f * deltaTime; //la velocidad de caminar
 
 		if (tipoCamara == 3) {
 			// Si es cámara libre, el WASD mueve a la cámara por el aire, no al avatar
@@ -993,7 +1014,7 @@ int main()
 		// --- 8.4: CÁLCULO DE JERARQUÍAS DE LUCES
 		// ===============================================================================
 		// 1. FARO DEL TREN CHICO (Tecla 7 -> Índice 6)
-		float cx, cz, cRotY;
+		
 		CalcularPosicionRutaTren(distanciaTrenChico, cx, cz, cRotY);
 		// Creamos la matriz del "padre" (el tren) para usarla como ancla de los "hijos" (luz y humo)
 		glm::mat4 trenChicoMat = glm::mat4(1.0f);
@@ -1009,7 +1030,7 @@ int main()
 			1.0f, 0.022f, 0.0019f,                    // Atenuación (Valores bajos = llega más lejos)
 			35.0f);                                   // Ángulo de apertura del cono de luz de 35°
 		// 2. FARO DEL TREN LARGO (Tecla 8 -> Índice 7)
-		float lx, lz, lRotY;
+		
 		CalcularPosicionRutaTrenLargo(distanciaTrenLargo, lx, lz, lRotY);
 		// Creamos la matriz del "padre" (el tren) para usarla como ancla de los "hijos" (luz y humo)
 		glm::mat4 trenLargoMat = glm::mat4(1.0f);
@@ -1049,7 +1070,7 @@ int main()
 		bool* estadosSpot = mainWindow.getStatusLucesSpot();
 		SpotLight lucesSpotActivas[8];			// ATemp solo para las luces que estén encendidas
 		unsigned int contadorSpotActivas = 0;	// Lleva la cuenta real de cuántas enviaremos
-		for (int i = 0; i < 8; i++) {			// Recoremos catalogo de las 8 SpotLights
+		for (i = 0; i < 8; i++) {			// Recoremos catalogo de las 8 SpotLights
 			if (estadosSpot[i]) {
 				lucesSpotActivas[contadorSpotActivas] = spotLights[i];
 				contadorSpotActivas++;
@@ -1088,7 +1109,6 @@ int main()
 		M02.RenderModel();
 
 		// === TREN CHICO ===
-		float posX, posZ, rotY;
 		// 1. DIBUJAR CABINA
 		CalcularPosicionRutaTren(distanciaTrenChico, posX, posZ, rotY);
 		model = glm::mat4(1.0);
@@ -1494,6 +1514,57 @@ int main()
 		model = glm::rotate(model, 105 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M32.RenderModel();
+		// Señalizacion (M33_1)
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(110.0f, 0.0f, 15.0f));
+		model = glm::rotate(model, -90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M33_1.RenderModel();
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(130.0f, 0.0f, 15.0f));
+		model = glm::rotate(model, -90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M33_1.RenderModel();
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-130.0f, 0.0f, -16.0f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M33_1.RenderModel();
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-110.0f, 0.0f, -16.0f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M33_1.RenderModel();
+		// Señalizacion (M33_2)
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-140.0f, 0.0f, 0.0f));
+		model = glm::rotate(model, 270 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M33_2.RenderModel();
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(140.0f, 0.0f, 0.0f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M33_2.RenderModel();
+		// Carteles
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-50.0f, 0.0f, -75.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M34.RenderModel();
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(-15.0f, 0.0f, 25.0f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M34.RenderModel();
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(35.0f, 0.0f, -30.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M34.RenderModel();
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(27.0f, 0.0f, -83.0f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M34.RenderModel();
 
 		// === RUNATERRA NPC's ===
 		// Ziggs (LOL_00)
@@ -1786,7 +1857,16 @@ int main()
 		glUniform3fv(uniformColor, 1, glm::value_ptr(colorOriginal));
 
 
+		// === POROS CORAZONES ===
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-134.0f, 7.0f + offsetYHumo, -52.0f));
+		model = glm::scale(model, glm::vec3(escalaHumoAnimada, escalaHumoAnimada, escalaHumoAnimada));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		texturaPoro.UseTexture();
+		Material_opaco.UseMaterial(uniformSpecularIntensity, uniformShininess);
+		meshList[3]->RenderMesh();
 		
+
 		glDisable(GL_BLEND);
 		glUseProgram(0);
 		mainWindow.swapBuffers();

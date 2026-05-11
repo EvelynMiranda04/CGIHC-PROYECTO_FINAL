@@ -52,8 +52,10 @@ void Model::RenderModel()
 		{
 			TextureList[materialIndex]->UseTexture();
 		}
-		MeshList[i]->RenderMesh();
-
+		if (MeshList[i] != nullptr)
+		{
+			MeshList[i]->RenderMesh();
+		}
 	}
 
 
