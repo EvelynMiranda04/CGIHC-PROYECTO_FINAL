@@ -1,0 +1,47 @@
+# Blender 5.0.1 MTL File: 'PJS.blend'
+# www.blender.org
+
+newmtl Bass
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd BassLP_Material_BaseColor.png
+map_Ns BassLP_Material_Roughness.png
+map_refl BassLP_Material_Metallic.png
+map_Bump -bm 1.000000 BassLP_Material_Normal.png
+
+newmtl Comb
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Comb_Comb_BaseColor.png
+map_Ns Comb_Comb_Roughness.png
+map_refl Comb_Comb_Metallic.png
+map_Bump -bm 1.000000 Comb_Comb_Normal.png
+
+newmtl Material.002
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd SceneLP_Scene_BaseColor.png
+
+newmtl Scene
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+illum 2
+map_Kd SceneLP_Scene_BaseColor.png
+map_Ns SceneLP_Scene_Roughness.png
+map_refl SceneLP_Scene_BaseColor.png
+map_Ke SceneLP_Scene_Emissive.png
+map_d SceneLP_Scene_BaseColor.png

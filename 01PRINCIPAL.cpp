@@ -69,47 +69,128 @@ float rotacionGlobal;
 float radRot;
 bool isMoving;
 float velocity;
+float deltaX;
+float deltaY;
+glm::vec3 posAvatar;
+glm::vec3 forwardAvatar;
+glm::vec3 up;
+glm::vec3 rightAvatar;
+glm::mat4 viewMatrix;
+glm::vec3 posCamara;
+glm::vec3 targetCamara;
 
 // ==========================================
 // 3.2 - VARIABLES CICLO DYN (Evelyn)
 // ==========================================
-float temporizadorSkybox = 0.0f;
-int indiceSkyboxActual = 0;
-float duracionEtapaSkybox = 250.0f;	// VELOCIDAD DEL CICLO DÍA-NOCHE
+float temporizadorSkybox = 0.0f;		// Reloj maestro del cielo
+int indiceSkyboxActual = 0;				// Textura actual del cielo [0-7]
+float duracionEtapaSkybox = 250.0f;		// VELOCIDAD DEL CICLO DÍA-NOCHE
+unsigned int lucesPuntualesActivas;		// Luminarias de calle a encender
 
 // ==========================================
 // 3.3 - MÁQUINA DE ESTADOS An2: (Evelyn)
 // ==========================================
 // --- TREN CHICO ---
-int subEtapaTrenChico = 1;			// [1-5]
-float temporizadorTrenChico = 0.0f; // Reloj individual tren ch
-float distanciaTrenChico = 0.0f;	// Progreso q llevamos en las vías1
-float trenChicoPosY = 0.0f;
-float trenChicoPosZ = 7.26f;
-float trenChicoRotY = 0.0f;
+int subEtapaTrenChico = 1;				// [1-5]
+float temporizadorTrenChico = 0.0f;		// Reloj individual tren ch
+float distanciaTrenChico = 0.0f;		// Progreso q llevamos en las vías1
+float trenChicoPosY = 0.0f;				// Altura inicial tren 1
+float trenChicoPosZ = 7.26f;			// Vía Z inicial tren 1
+float trenChicoRotY = 0.0f;				// Rotación inicial tren 1
 // --- TREN LARGO ---
-int subEtapaTrenLargo = 6;			// [6-10]
-float temporizadorTrenLargo = 0.0f; // Reloj individual tren lr
-float distanciaTrenLargo = 0.0f;	//  Progreso q llevamos en las vías2
+int subEtapaTrenLargo = 6;				// [6-10]
+float temporizadorTrenLargo = 0.0f;		// Reloj individual tren lr
+float distanciaTrenLargo = 0.0f;		// Progreso q llevamos en las vías2
+int gatilloB;							// Contador de presiones tecla B
+float progreso;							// Porcentaje de avance (0.0 a 1.0)
+float cx, cz, cRotY;					// Coord temporales tren chico
+float lx, lz, lRotY;					// Coord temporales tren largo
+float posX, posZ, rotY;					// Coord temporales para vagones
+
+// ==========================================
+// 3.4 - MÁQUINA DE ESTADOS An5: (Evelyn)
+// ==========================================
 // --- HUMO: ANIMACIÓN CÍCLICA ---
-float temporizadorCicloHumo = 0.0f; // 200.0f unidades por ciclo
-float offsetYHumo = 0.0f;			// -3Y o +3Y
-float escalaHumoAnimada = 0.0f;		// Escala final después de cálculos
+float temporizadorCicloHumo = 0.0f;		// 200.0f unidades por ciclo
+float offsetYHumo = 0.0f;				// -3Y o +3Y
+float escalaHumoAnimada = 0.0f;			// Escala final después de cálculos
 glm::mat4 matrizHumoChico = glm::mat4(1.0f);	// Guardado de posición de la cabina 
 glm::mat4 matrizHumoLargo = glm::mat4(1.0f);	// Guardado de posición de la cabina 
+float pSuave;							// Curva de suavizado (Ease-in/out)
+float escalaBase;						// Tamaño base de humo sin el latido
+float offsetY;							// Desplazamiento temporal en Y
+float offsetZ;							// Desplazamiento temporal en Z
 
-float offsetY;
-float offsetZ;
-int gatilloB;
-float progreso;
-float pSuave;
-float escalaBase;
-float deltaX;
-float deltaY;
-float cx, cz, cRotY;
-float lx, lz, lRotY;
-float posX, posZ, rotY;
-int i;
+// ==========================================
+// 3.5 - Luces Spot: (Evelyn)
+// ==========================================
+glm::mat4 trenChicoMat;					// Matriz ancla faro chico
+glm::vec3 posFaroChico;					// Coordenada 3D faro chico
+glm::vec3 dirFaroChico;					// Vector de dirección faro chico
+glm::mat4 trenLargoMat;					// Matriz ancla faro largo
+glm::vec3 posFaroLargo;					// Coordenada 3D faro largo
+glm::vec3 dirFaroLargo;					// Vector de dirección faro largo
+int i;									// Iterador estándar de bucles
+unsigned int contadorSpotActivas;		// Total de faros/edificios a renderizar
+
+
+// ==========================================
+// 3.6 - RELOJ ANIMACION BASICA: (Tony)
+// ==========================================
+float rotAutoGearMinuto = 0.0f;
+float rotAutoGearHora = 0.0f;
+int   autoMinuteCount = 0;
+float autoStepTimer = 0.0f;
+float autoStepInterval = 60.0f; // 1 segundo por paso (ajustable)
+// Engranes decorativos del segundo reloj
+float autoGearBackRotation = 0.0f;
+float autoGearRotSpeed = 1.0f; // Velocidad de giro ajustable
+
+// ==========================================
+// 3.7 - RELOJ ANIMACION POR KEYFRAMES: (Tony)
+// ==========================================      
+	// 13 keyframes = 12 segmentos de 30° (una vuelta completa + cierre).
+const int N_KF = 13;
+// --- Tablas de keyframes (rotación en Z, en grados) ----------------
+float kf_Gear1[N_KF] = { 0,  30,  60,  90, 120, 150, 180, 210, 240, 270, 300, 330, 360 };
+float kf_Gear2[N_KF] = { 0, -30, -60, -90,-120,-150,-180,-210,-240,-270,-300,-330,-360 };
+float kf_Gear3[N_KF] = { 0,  30,  60,  90, 120, 150, 180, 210, 240, 270, 300, 330, 360 };
+float kf_GearMin[N_KF] = { 0, -30, -60, -90,-120,-150,-180,-210,-240,-270,-300,-330,-360 };
+float kf_GearHor[N_KF] = { 0, -2.5f, -5.0f, -7.5f, -10.0f, -12.5f,
+						  -15.0f,-17.5f,-20.0f,-22.5f,-25.0f,-27.5f, -30.0f };
+float rotGear1 = 0.0f, rotGear2 = 0.0f, rotGear3 = 0.0f;
+float rotGearMin = 0.0f, rotGearHor = 0.0f;
+float incGear1 = 0.0f, incGear2 = 0.0f, incGear3 = 0.0f;
+float incGearMin = 0.0f, incGearHor = 0.0f;
+// --- Control de pasos 
+int   curr_step = 0;     // paso actual dentro del segmento
+int   max_steps = 60;    // frames por segmento (60 aprox 1 s a 60 fps)
+int   kf_idx = 0;     // índice del keyframe en el que vamos
+bool  firstKF = true;  // bandera para inicializar incrementos
+
+
+// ==========================================
+// 3.8 - CUCKOO ANIMACION POR KEYFRAMES: (Tony)
+// ==========================================
+// 5 keyframes: péndulo va al centro -> izq -> centro -> der -> centro (un ciclo)
+const int N_KF_CK = 5;
+float ck_kf_pendulo[N_KF_CK] = { 0.0f, -20.0f, 0.0f, 20.0f, 0.0f };
+float ck_kf_pajaro[N_KF_CK] = { 0.0f, -15.0f, 0.0f, -15.0f, 0.0f };
+float ck_kf_cad3[N_KF_CK] = { 0.0f,  0.3f,  0.0f, -0.3f,  0.0f };
+float ck_kf_cad4[N_KF_CK] = { 0.0f, -0.3f,  0.0f,  0.3f,  0.0f };
+// Variables de estado del cuckoo
+float ck_rotPendulo = 0.0f;
+float ck_rotPajaro = 0.0f;
+float ck_trasCad3 = 0.0f;
+float ck_trasCad4 = 0.0f;
+float ck_incPendulo = 0.0f, ck_incPajaro = 0.0f;
+float ck_incCad3 = 0.0f, ck_incCad4 = 0.0f;
+int  ck_curr_step = 0;
+int  ck_max_steps = 40;   // frames por segmento (0.67 s a 60 fps, ajustable)
+int  ck_kf_idx = 0;
+bool ck_firstKF = true;
+
+
 
 // ====================================================================================
 // 4. DECLARACIÓN DE OBJETOS DE LA ESCENA
@@ -163,10 +244,46 @@ Model hw_BrazoDerecho;
 Model hw_BrazoIzquierdo;
 // BANCA HW
 Model hw_banca;
+//Hornet HW
+Model hornet;
+//Cristal HW
+Model hw_libros;
+//Cornifer HW
+Model cornifer;
+//Poste HW
+Model hw_poste;
+//Sherma
+Model hw_sherma;
+//Shakra
+Model hw_marissa;
 
 // ==========================================
 // 4.3 - TEXTURAS Y MODELOS (Tony)
 // ==========================================
+Model Miku;
+Model Rin;
+Model Len;
+Model Teto;
+Model Luka;
+Model Stage;
+Model Piano;
+Model Instruments;
+Model Magnet;
+Model Leeks;
+Model Chairs;
+Model GearBase;
+Model Gear1;
+Model Gear2;
+Model Gear3;
+Model GearHora;
+Model GearMinuto;
+Model lamparaTony;
+Model Scene;
+Model CuckooBase;
+Model Cuckoo1;
+Model Cuckoo2;
+Model Cuckoo3;
+Model Cuckoo4;
 
 // ==========================================
 // 4.4 - TEXTURAS Y MODELOS (Ruben)
@@ -530,8 +647,40 @@ int main()
 	hw_PiernaIzquierda = Model();	hw_PiernaIzquierda.LoadModel("Models/hw_PiernaIzquierda.obj");
 	hw_BrazoDerecho = Model();		hw_BrazoDerecho.LoadModel("Models/hw_BrazoDerecho.obj");
 	hw_BrazoIzquierdo = Model();	hw_BrazoIzquierdo.LoadModel("Models/hw_BrazoIzquierdo.obj");
+
 	hw_banca.LoadModel("Models/hw_banca.obj");
+	hornet.LoadModel("Models/hornet_mod_1.obj");
+	hw_libros.LoadModel("Models/hw_libros.obj");
+	cornifer.LoadModel("Models/hw_cornifer.obj");
+	hw_poste.LoadModel("Models/hw_poste.obj");
+	hw_sherma.LoadModel("Models/hw_sherma.obj");
+	hw_marissa.LoadModel("Models/hw_marissa.obj");
+
 	// -----------------------> 7.2.3 - Tony
+	Miku = Model(); Miku.LoadModel("Models/MikuM.obj");
+	Rin = Model(); Rin.LoadModel("Models/Rin.obj");
+	Len = Model(); Len.LoadModel("Models/Len.obj");
+	Teto = Model(); Teto.LoadModel("Models/Teto.obj");
+	Luka = Model(); Luka.LoadModel("Models/Luka.obj");
+	Stage = Model(); Stage.LoadModel("Models/Stage.obj");
+	Piano = Model(); Piano.LoadModel("Models/Piano.obj");
+	Instruments = Model(); Instruments.LoadModel("Models/Instruments.obj");
+	Magnet = Model(); Magnet.LoadModel("Models/Magnet.obj");
+	Leeks = Model(); Leeks.LoadModel("Models/Leeks.obj");
+	Chairs = Model(); Chairs.LoadModel("Models/Chairs.obj");
+	GearBase = Model(); GearBase.LoadModel("Models/Gear_base.obj");
+	Gear1 = Model(); Gear1.LoadModel("Models/Gear1.obj");
+	Gear2 = Model(); Gear2.LoadModel("Models/Gear2.obj");
+	Gear3 = Model(); Gear3.LoadModel("Models/Gear3.obj");
+	GearHora = Model(); GearHora.LoadModel("Models/GearHora.obj");
+	GearMinuto = Model(); GearMinuto.LoadModel("Models/GearMinuto.obj");
+	lamparaTony = Model(); lamparaTony.LoadModel("Models/lamparaTony.obj");
+	Scene = Model(); Scene.LoadModel("Models/Scene.obj");
+	CuckooBase = Model(); CuckooBase.LoadModel("Models/CuckooBase.obj");
+	Cuckoo1 = Model(); Cuckoo1.LoadModel("Models/Cuckoo1.obj");
+	Cuckoo2 = Model(); Cuckoo2.LoadModel("Models/Cuckoo2.obj");
+	Cuckoo3 = Model(); Cuckoo3.LoadModel("Models/Cuckoo3.obj");
+	Cuckoo4 = Model(); Cuckoo4.LoadModel("Models/Cuckoo4.obj");
 
 	// -----------------------> 7.2.4 - Ruben
 
@@ -607,9 +756,7 @@ int main()
 	}
 	pointLightCount = 8;
 
-	
-
-	// ----- 7.4.4: LUCES SPOT (Linternas y Faros) 
+	// ----- 7.4.4: LUCES SPOT
 	unsigned int spotLightCount = 0;
 	// Edificios M28 (Índices 0 a 5) - Luces fijas con dirección hacia el piso
 	for (i = 0; i < 6; i++) {
@@ -625,11 +772,10 @@ int main()
 			1.0f, 0.045f, 0.0075f,                   // Atenuación 
 			45.0f);                                  // Ángulo de apertura del cono
 	}
-	// Faros móviles (Índices 6 y 7) - Luces con dirección hacia adelante (Z negativo)
+	// Luces móviles (Índices 6 y 7) - Luces con dirección hacia adelante (Z negativo)
 	spotLights[6] = SpotLight(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.045f, 0.0075f, 30.0f);
 	spotLights[7] = SpotLight(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.045f, 0.0075f, 30.0f);
 	spotLightCount = 8;
-
 
 
 	// =========================================================
@@ -682,21 +828,105 @@ int main()
 			}
 		}
 
-		
-
 
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		// ----- 8.1.2: LÓGICA DE ANIMACION B1 - Reloj (Tony)
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		// --------------  Reloj animacion básica -------------------------------------
+		autoGearBackRotation += autoGearRotSpeed * deltaTime;
+		autoStepTimer += deltaTime;
+		if (autoStepTimer >= autoStepInterval) {
+			autoStepTimer = 0.0f;
+			rotAutoGearMinuto -= 30.0f; // Salto de 30 grados
+			if (rotAutoGearMinuto <= -360.0f) rotAutoGearMinuto += 360.0f;
+			autoMinuteCount++;
+			if (autoMinuteCount >= 12) {
+				autoMinuteCount = 0;
+				rotAutoGearHora -= 30.0f;
+				if (rotAutoGearHora <= -360.0f) rotAutoGearHora += 360.0f;
+			}
+		}
+		//  --------------  Reloj animacion por keyframes -------------------------------------
+		if (firstKF) {
+			incGear1 = (kf_Gear1[1] - kf_Gear1[0]) / (float)max_steps;
+			incGear2 = (kf_Gear2[1] - kf_Gear2[0]) / (float)max_steps;
+			incGear3 = (kf_Gear3[1] - kf_Gear3[0]) / (float)max_steps;
+			incGearMin = (kf_GearMin[1] - kf_GearMin[0]) / (float)max_steps;
+			incGearHor = (kf_GearHor[1] - kf_GearHor[0]) / (float)max_steps;
+			firstKF = false;
+		}
+		if (curr_step < max_steps)
+		{
+			rotGear1 += incGear1;
+			rotGear2 += incGear2;
+			rotGear3 += incGear3;
+			rotGearMin += incGearMin;
+			rotGearHor += incGearHor;
+			curr_step++;
+		}
+		else
+		{
+			curr_step = 0;
+			kf_idx++;
+			if (kf_idx >= N_KF - 1)
+			{
+				// Cerramos el ciclo regresamos al keyframe 0 y reseteamos
+				// las rotaciones para que no haya drift acumulado
+				kf_idx = 0;
+				rotGear1 = kf_Gear1[0];
+				rotGear2 = kf_Gear2[0];
+				rotGear3 = kf_Gear3[0];
+				rotGearMin = kf_GearMin[0];
+				rotGearHor = kf_GearHor[0];
+			}
+			// Recalcular incrementos para el nuevo segmento
+			incGear1 = (kf_Gear1[kf_idx + 1] - kf_Gear1[kf_idx]) / (float)max_steps;
+			incGear2 = (kf_Gear2[kf_idx + 1] - kf_Gear2[kf_idx]) / (float)max_steps;
+			incGear3 = (kf_Gear3[kf_idx + 1] - kf_Gear3[kf_idx]) / (float)max_steps;
+			incGearMin = (kf_GearMin[kf_idx + 1] - kf_GearMin[kf_idx]) / (float)max_steps;
+			incGearHor = (kf_GearHor[kf_idx + 1] - kf_GearHor[kf_idx]) / (float)max_steps;
+		}
 
+		// ------------------------------ Cuckoo animacion por keyframes-------------------------
+		if (ck_firstKF) {
+			ck_incPendulo = (ck_kf_pendulo[1] - ck_kf_pendulo[0]) / (float)ck_max_steps;
+			ck_incPajaro = (ck_kf_pajaro[1] - ck_kf_pajaro[0]) / (float)ck_max_steps;
+			ck_incCad3 = (ck_kf_cad3[1] - ck_kf_cad3[0]) / (float)ck_max_steps;
+			ck_incCad4 = (ck_kf_cad4[1] - ck_kf_cad4[0]) / (float)ck_max_steps;
+			ck_firstKF = false;
+		}
+		if (ck_curr_step < ck_max_steps)
+		{
+			ck_rotPendulo += ck_incPendulo;
+			ck_rotPajaro += ck_incPajaro;
+			ck_trasCad3 += ck_incCad3;
+			ck_trasCad4 += ck_incCad4;
+			ck_curr_step++;
+		}
+		else
+		{
+			ck_curr_step = 0;
+			ck_kf_idx++;
+			if (ck_kf_idx >= N_KF_CK - 1)
+			{
+				// Cierre del ciclo — resetear a keyframe 0 sin drift
+				ck_kf_idx = 0;
+				ck_rotPendulo = ck_kf_pendulo[0];
+				ck_rotPajaro = ck_kf_pajaro[0];
+				ck_trasCad3 = ck_kf_cad3[0];
+				ck_trasCad4 = ck_kf_cad4[0];
+			}
+			// Recalcular incrementos para el nuevo segmento
+			ck_incPendulo = (ck_kf_pendulo[ck_kf_idx + 1] - ck_kf_pendulo[ck_kf_idx]) / (float)ck_max_steps;
+			ck_incPajaro = (ck_kf_pajaro[ck_kf_idx + 1] - ck_kf_pajaro[ck_kf_idx]) / (float)ck_max_steps;
+			ck_incCad3 = (ck_kf_cad3[ck_kf_idx + 1] - ck_kf_cad3[ck_kf_idx]) / (float)ck_max_steps;
+		}
 
 		
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		// ----- 8.1.3: LÓGICA DE ANIMACION B2 - Locomotora (Evelyn)
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
 		gatilloB = mainWindow.getContadorTeclaB();	// ¿Cuantas veces hemos apretado B?
-
 		// RESET AUTOMÁTICO AL VOLVER A 0
 		if (gatilloB == 0) {
 			// Reseteamos tren chico y largo
@@ -881,7 +1111,6 @@ int main()
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		// --- 8.2 LOGICA DE CONTROL DE CÁMARAS Y MOVIMIENTO DEL AVATAR (Juan Pablo)
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-	
 		// Capturar eventos de la ventana
 		glfwPollEvents();
 		// --- 1. ACTUALIZAR ESTADO DE CÁMARA ---
@@ -889,11 +1118,9 @@ int main()
 		if (mainWindow.getAccionG()) { tipoCamara = 1; mainWindow.apagarAccionG(); }
 		if (mainWindow.getAccionH()) { tipoCamara = 2; mainWindow.apagarAccionH(); }
 		if (mainWindow.getAccionJ()) { tipoCamara = 3; mainWindow.apagarAccionJ(); }
-
 		// Leer el ratón una sola vez
 		deltaX = mainWindow.getXChange();
 		deltaY = mainWindow.getYChange();
-
 		// --- 2. LÓGICA DEL RATÓN ---
 		if (tipoCamara == 3) {
 			// [J] CÁMARA LIBRE: Controla su propio giro
@@ -904,22 +1131,18 @@ int main()
 			// Ajusta el 0.3f si quieres que el ratón gire al personaje más rápido o más lento
 			cuerpoRotY -= deltaX * 0.3f;
 		}
-		
+		isMoving = false;
 		// --- 3. CÁLCULO DE VECTORES DIRECCIONALES DEL AVATAR ---
-		glm::vec3 posAvatar(cuerpoPosX, 1.0f, cuerpoPosZ);
+		posAvatar = glm::vec3(cuerpoPosX, 1.0f, cuerpoPosZ);
 		rotacionGlobal = 180.0f + cuerpoRotY;
 		radRot = rotacionGlobal * toRadians;
-
 		// Vector que apunta hacia el frente del personaje
-		glm::vec3 forwardAvatar(sin(radRot), 0.0f, cos(radRot));
-		glm::vec3 up(0.0f, 1.0f, 0.0f);
+		forwardAvatar = glm::vec3(sin(radRot), 0.0f, cos(radRot));
+		up = glm::vec3(0.0f, 1.0f, 0.0f);
 		// Vector que apunta hacia la derecha del personaje
-		glm::vec3 rightAvatar = glm::normalize(glm::cross(up, forwardAvatar));
-
+		rightAvatar = glm::normalize(glm::cross(up, forwardAvatar));
 		// --- 4. CONTROL DE MOVIMIENTO (A, W, S, D) Y ANIMACIÓN ---
-		isMoving = false;
 		velocity = 0.15f * deltaTime; //la velocidad de caminar
-
 		if (tipoCamara == 3) {
 			// Si es cámara libre, el WASD mueve a la cámara por el aire, no al avatar
 			camera.keyControl(mainWindow.getsKeys(), deltaTime);
@@ -947,7 +1170,6 @@ int main()
 				isMoving = true;
 			}
 		}
-
 		// --- 5. ANIMACIÓN CONDICIONADA A MOVIMIENTO ---
 		if (isMoving) {
 			// Usamos una función seno basada en el tiempo para oscilar brazos/piernas de forma natural
@@ -957,12 +1179,7 @@ int main()
 		else {
 			rotacionAvatar = 0.0f; // Personaje quieto con extremidades rectas
 		}
-
 		// --- 6. CÁLCULO FINAL DE LAS MATRICES DE VISTA ---
-		glm::mat4 viewMatrix;
-		glm::vec3 posCamara;
-		glm::vec3 targetCamara;
-
 		if (tipoCamara == 3) {
 			viewMatrix = camera.calculateViewMatrix();
 			posCamara = camera.getCameraPosition();
@@ -1009,19 +1226,19 @@ int main()
 		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 		glUniform3f(uniformEyePosition, posCamara.x, posCamara.y, posCamara.z);
 
-
+		
 		// ===============================================================================
 		// --- 8.4: CÁLCULO DE JERARQUÍAS DE LUCES
 		// ===============================================================================
-		// 1. FARO DEL TREN CHICO (Tecla 7 -> Índice 6)
 		
+		// 1. FARO DEL TREN CHICO (Tecla 7 -> Índice 6)
 		CalcularPosicionRutaTren(distanciaTrenChico, cx, cz, cRotY);
 		// Creamos la matriz del "padre" (el tren) para usarla como ancla de los "hijos" (luz y humo)
-		glm::mat4 trenChicoMat = glm::mat4(1.0f);
+		trenChicoMat = glm::mat4(1.0f);
 		trenChicoMat = glm::translate(trenChicoMat, glm::vec3(cx, 0.0f, cz));
 		trenChicoMat = glm::rotate(trenChicoMat, cRotY * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
-		glm::vec3 posFaroChico = glm::vec3(trenChicoMat * glm::vec4(18.0f, 9.5f, 0.0f, 1.0f));
-		glm::vec3 dirFaroChico = glm::normalize(glm::vec3(trenChicoMat * glm::vec4(1.0f, -0.2f, 0.0f, 0.0f)));
+		posFaroChico = glm::vec3(trenChicoMat * glm::vec4(18.0f, 9.5f, 0.0f, 1.0f));
+		dirFaroChico = glm::normalize(glm::vec3(trenChicoMat * glm::vec4(1.0f, -0.2f, 0.0f, 0.0f)));
 		// Sobrescribimos el SpotLight 6 con las nuevas coordenadas y direcciones calculadas
 		spotLights[6] = SpotLight(1.0f, 1.0f, 1.0f,   // Color Blanco
 			1.0f, 1.0f,                               // Intensidades
@@ -1033,11 +1250,11 @@ int main()
 		
 		CalcularPosicionRutaTrenLargo(distanciaTrenLargo, lx, lz, lRotY);
 		// Creamos la matriz del "padre" (el tren) para usarla como ancla de los "hijos" (luz y humo)
-		glm::mat4 trenLargoMat = glm::mat4(1.0f);
+		trenLargoMat = glm::mat4(1.0f);
 		trenLargoMat = glm::translate(trenLargoMat, glm::vec3(lx, 0.0f, lz));
 		trenLargoMat = glm::rotate(trenLargoMat, lRotY * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
-		glm::vec3 posFaroLargo = glm::vec3(trenLargoMat * glm::vec4(18.0f, 9.5f, 0.0f, 1.0f));
-		glm::vec3 dirFaroLargo = glm::normalize(glm::vec3(trenLargoMat * glm::vec4(1.0f, -0.2f, 0.0f, 0.0f)));
+		posFaroLargo = glm::vec3(trenLargoMat * glm::vec4(18.0f, 9.5f, 0.0f, 1.0f));
+		dirFaroLargo = glm::normalize(glm::vec3(trenLargoMat * glm::vec4(1.0f, -0.2f, 0.0f, 0.0f)));
 		// Sobrescribimos el SpotLight 7 con las nuevas coordenadas y direcciones calculadas
 		spotLights[7] = SpotLight(1.0f, 1.0f, 1.0f,   // Color Blanco
 			1.0f, 1.0f,                               // Intensidades
@@ -1048,17 +1265,14 @@ int main()
 		matrizHumoChico = trenChicoMat;
 		matrizHumoLargo = trenLargoMat;
 
-		
-
 		// ===============================================================================
 		// --- 8.5: ENVÍO DE LUCES AL SHADER
 		// ===============================================================================
-		
 		// ENVIO de luz DIRECCIONAL (Siempre 1, cambia según el skybox)
 		shaderList[0].SetDirectionalLight(&arregloLucesDireccionales[indiceSkyboxActual]);
 
 		// ENVIO de luces PUNTUALES (Siempre 8, pero solo algunas activas según el skybox)
-		unsigned int lucesPuntualesActivas = 0;
+		lucesPuntualesActivas = 0;
 		if (indiceSkyboxActual == 0 || indiceSkyboxActual == 5 ||
 			indiceSkyboxActual == 6 || indiceSkyboxActual == 7)
 		{
@@ -1069,7 +1283,7 @@ int main()
 		// ENVIO de luces SPOT (Variable, según teclas 1 a 8)
 		bool* estadosSpot = mainWindow.getStatusLucesSpot();
 		SpotLight lucesSpotActivas[8];			// ATemp solo para las luces que estén encendidas
-		unsigned int contadorSpotActivas = 0;	// Lleva la cuenta real de cuántas enviaremos
+		contadorSpotActivas = 0;	// Lleva la cuenta real de cuántas enviaremos
 		for (i = 0; i < 8; i++) {			// Recoremos catalogo de las 8 SpotLights
 			if (estadosSpot[i]) {
 				lucesSpotActivas[contadorSpotActivas] = spotLights[i];
@@ -1077,7 +1291,6 @@ int main()
 			}
 		}
 		shaderList[0].SetSpotLights(lucesSpotActivas, contadorSpotActivas);
-
 		// Limpieza de offsets de textura y color
 		color = glm::vec3(1.0f, 1.0f, 1.0f);
 		toffset = glm::vec2(0.0f, 0.0f);
@@ -1089,7 +1302,53 @@ int main()
 		// ===============================================================================
 		// --- 8.6: RENDERIZADO DE MODELOS OPACOS
 		// ===============================================================================
-		
+
+		// === LUMINARIAS (Desagrupadas por índices del arreglo) ===
+		// Poste 1 (Coordenada: -86, 0, -85) - Modelo LOL_12
+		model = glm::mat4(1.0);
+		model = glm::translate(model, posicionesPostes[0]);
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		LOL_12.RenderModel();
+		// Poste 2 (Coordenada: 84, 0, -85) - Modelo hw_poste
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, posicionesPostes[1]);
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(2.0f, 3.5f, 2.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_poste.RenderModel();
+		// Poste 3 (Coordenada: 84, 0, 84) - Modelo 
+		model = glm::mat4(1.0);
+		model = glm::translate(model, posicionesPostes[2]);
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		//LOL_12.RenderModel();
+		// Poste 4 (Coordenada: -86, 0, 84) - Modelo lamparaTony
+		model = glm::mat4(1.0);
+		model = glm::translate(model, posicionesPostes[3]);
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		lamparaTony.RenderModel();
+		// Poste 5 (Coordenada: -86, 0, 0) - Modelo LOL_12
+		model = glm::mat4(1.0);
+		model = glm::translate(model, posicionesPostes[4]);
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		LOL_12.RenderModel();
+		// Poste 6 (Coordenada: 84, 0, 0) - Modelo 
+		model = glm::mat4(1.0);
+		model = glm::translate(model, posicionesPostes[5]);
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		//LOL_12.RenderModel();
+		// Poste 7 (Coordenada: 0, 0, 75) - Modelo lamparaTony
+		model = glm::mat4(1.0);
+		model = glm::translate(model, posicionesPostes[6]);
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		lamparaTony.RenderModel();
+		// Poste 8 (Coordenada: 0, 0, -75) - Modelo hw_poste
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, posicionesPostes[7]);
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(2.0f, 3.5f, 2.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_poste.RenderModel();
+
 
 		// >>>>>>>>>>>>>>>>>>>>>>>>> TEXTURAS Y MODELOS - EVELYN >>>>>>>>>>>>>>>>>>>>>>>>>
 		// === ESCENARIO ===
@@ -1107,7 +1366,6 @@ int main()
 		model = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, 0.0f, 45.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M02.RenderModel();
-
 		// === TREN CHICO ===
 		// 1. DIBUJAR CABINA
 		CalcularPosicionRutaTren(distanciaTrenChico, posX, posZ, rotY);
@@ -1130,7 +1388,6 @@ int main()
 		model = glm::rotate(model, rotY * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M04.RenderModel();
-
 		// === TREN LARGO ===
 		// 1. DIBUJAR CABINA
 		CalcularPosicionRutaTrenLargo(distanciaTrenLargo, posX, posZ, rotY);
@@ -1160,7 +1417,6 @@ int main()
 		model = glm::rotate(model, rotY * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M04.RenderModel();
-
 		// === ESCENARIO ===
 		// Barandal Edificio Principal
 		model = glm::mat4(1.0);
@@ -1173,7 +1429,6 @@ int main()
 		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M14.RenderModel();
-
 		// === EDIFICIOS STEAMPUNK ===
 		// Edificio No 3 (Espejeado)
 		model = glm::mat4(1.0);
@@ -1232,7 +1487,6 @@ int main()
 		model = glm::translate(model, glm::vec3(-105.0f, 0.0f, -30.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M22.RenderModel();
-
 		// === EDIFICIOS No tan steampunk ===
 		// Estructura (Al lado del puesto Ziggs)
 		model = glm::mat4(1.0);
@@ -1244,7 +1498,6 @@ int main()
 		model = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, 0.0f, -40.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M23.RenderModel();
-
 		// === EDIFICIOS STEAMPUNK MODIFICADOS EN BLENDER ===
 		// Edificio No 2 (Espejeado / No Espejeado)
 		model = glm::mat4(1.0);
@@ -1276,8 +1529,6 @@ int main()
 		model = glm::translate(model, glm::vec3(-15.0f, 0.0f, -125.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M28_4.RenderModel(); // M28_4 NO Espejeado
-
-
 		// === DECORACION 1 ===
 		// Mini fuente
 		model = glm::mat4(1.0);
@@ -1410,7 +1661,6 @@ int main()
 		model = glm::rotate(model, 270 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M19.RenderModel();
-
 		// === DECORACION ===
 		// Librería Aire libre
 		model = glm::mat4(1.0);
@@ -1565,7 +1815,6 @@ int main()
 		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M34.RenderModel();
-
 		// === RUNATERRA NPC's ===
 		// Ziggs (LOL_00)
 		model = glm::mat4(1.0);
@@ -1680,7 +1929,6 @@ int main()
 		model = glm::rotate(model, 270 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		LOL_15.RenderModel();
-
 		// === DECORACION 2 RUNATERRA ===
 		// Torreta (LOL_03)
 		model = glm::mat4(1.0);
@@ -1745,19 +1993,8 @@ int main()
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		LOL_16.RenderModel();
 
-		// === LUMINARIAS ===
-		// Luminarias Hextech (LOL_12 - Jerarquía de arreglo)
-		for (int i = 0; i < 8; i++) {
-			model = glm::mat4(1.0);
-			model = glm::translate(model, posicionesPostes[i]); // Usa la posición del arreglo
-			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-			LOL_12.RenderModel();
-		}
-
-
 
 		// >>>>>>>>>>>>>>>>>>>>>>> TEXTURAS Y MODELOS - JUAN PABLO >>>>>>>>>>>>>>>>>>>>>>>
-		
 		// === INSTANCIA HW - CUERPO (EL PADRE) ===
 		model = glm::mat4(1.0);
 		model = glm::translate(model, glm::vec3(cuerpoPosX, 1.0f, cuerpoPosZ));
@@ -1767,51 +2004,44 @@ int main()
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		Material_opaco.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		hw_cuerpo.RenderModel();
-
 		// === INSTANCIA HW - CABEZA (HIJO DEL CUERPO) ===
 		model = modelCuerpo; // Partimos de la base del cuerpo
 		model = glm::translate(model, glm::vec3(0.0f, 1.2f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		hw_cabeza.RenderModel();
-
 		// === INSTANCIA HW - ESPADA (HIJO DEL CUERPO) ===
-		model = modelCuerpo; // Empezamos desde la posición del cuerpo
+		model = modelCuerpo; // Empezamos desde la posici n del cuerpo
 		model = glm::translate(model, glm::vec3(0.0f, 0.2f, -0.65f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		hw_espada.RenderModel();
-
-		// === PIERNA DERECHA (Avanza 15°) ===
+		// === PIERNA DERECHA (Avanza 15 ) ===
 		model = modelCuerpo;
 		model = glm::translate(model, glm::vec3(0.18f, -0.6f, 0.0f));
-		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f)); // Tu rotación base
-		model = glm::rotate(model, rotacionAvatar * toRadians, glm::vec3(1.0f, 0.0f, 0.0f)); // +35°
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f)); // Tu rotaci n base
+		model = glm::rotate(model, rotacionAvatar * toRadians, glm::vec3(1.0f, 0.0f, 0.0f)); // +35 
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		hw_PiernaDerecha.RenderModel();
-
-		// === PIERNA IZQUIERDA (Retrocede -15°) ===
+		// === PIERNA IZQUIERDA (Retrocede -15 ) ===
 		model = modelCuerpo;
 		model = glm::translate(model, glm::vec3(-0.18f, -0.6f, 0.0f));
 		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
-		model = glm::rotate(model, -rotacionAvatar * toRadians, glm::vec3(1.0f, 0.0f, 0.0f)); // -35°
+		model = glm::rotate(model, -rotacionAvatar * toRadians, glm::vec3(1.0f, 0.0f, 0.0f)); // -35 
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		hw_PiernaIzquierda.RenderModel();
-
 		// === BRAZO DERECHO (Retrocede con pierna derecha) ===
 		model = modelCuerpo;
 		model = glm::translate(model, glm::vec3(0.37f, 0.2f, 0.0f));
 		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
-		model = glm::rotate(model, -rotacionAvatar * toRadians, glm::vec3(1.0f, 0.0f, 0.0f)); // -35°
+		model = glm::rotate(model, -rotacionAvatar * toRadians, glm::vec3(1.0f, 0.0f, 0.0f)); // -35 
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		hw_BrazoDerecho.RenderModel();
-
 		// === BRAZO IZQUIERDO (Avanza con pierna derecha) ===
 		model = modelCuerpo;
 		model = glm::translate(model, glm::vec3(-0.37f, 0.2f, 0.0f));
 		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
-		model = glm::rotate(model, rotacionAvatar * toRadians, glm::vec3(1.0f, 0.0f, 0.0f)); // +35°
+		model = glm::rotate(model, rotacionAvatar * toRadians, glm::vec3(1.0f, 0.0f, 0.0f)); // +35 
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		hw_BrazoIzquierdo.RenderModel();
-
 		// === INSTANCIAS DE HW ===
 		// Banca
 		model = glm::mat4(1.0f);
@@ -1820,11 +2050,341 @@ int main()
 		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		hw_banca.RenderModel();
+		// === Librerias 1-19  ===
+		// INSTANCIA: Libreria 1
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(139.0f, 0.0f, -25.0f));
+		model = glm::rotate(model, -90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(8.0f, 8.0f, 8.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_libros.RenderModel();
+		// INSTANCIA: Libreria 2
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(139.0f, 0.0f, -31.0f));
+		model = glm::rotate(model, -90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(8.0f, 8.0f, 8.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_libros.RenderModel();
+		// INSTANCIA: Libreria 3
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(139.0f, 0.0f, -37.0f));
+		model = glm::rotate(model, -90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(8.0f, 8.0f, 8.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_libros.RenderModel();
+		// INSTANCIA: Libreria 4
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(139.0f, 0.0f, -43.0f));
+		model = glm::rotate(model, -90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(8.0f, 8.0f, 8.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_libros.RenderModel();
+		// INSTANCIA: Libreria 5
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(139.0f, 0.0f, -49.0f));
+		model = glm::rotate(model, -90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(8.0f, 8.0f, 8.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_libros.RenderModel();
+		// INSTANCIA: Libreria 6
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(139.0f, 0.0f, -54.0f));
+		model = glm::rotate(model, -90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(8.0f, 8.0f, 8.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_libros.RenderModel();
+		// INSTANCIA: Libreria 7
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(139.0f, 0.0f, -60.0f));
+		model = glm::rotate(model, -90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(8.0f, 8.0f, 8.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_libros.RenderModel();
+		// INSTANCIA: Libreria 8
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(105.0f, 0.0f, -31.0f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(8.0f, 8.0f, 8.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_libros.RenderModel();
+		// INSTANCIA: Libreria  8
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(105.0f, 0.0f, -25.0f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(8.0f, 8.0f, 8.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_libros.RenderModel();
+		// INSTANCIA: Libreria  9
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(105.0f, 0.0f, -31.0f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(8.0f, 8.0f, 8.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_libros.RenderModel();
+		// INSTANCIA: Libreria  10
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(105.0f, 0.0f, -37.0f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(8.0f, 8.0f, 8.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_libros.RenderModel();
+		// INSTANCIA: Libreria  11
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(105.0f, 0.0f, -43.0f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(8.0f, 8.0f, 8.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_libros.RenderModel();
+		// INSTANCIA: Libreria  12
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(105.0f, 0.0f, -49.0f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(8.0f, 8.0f, 8.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_libros.RenderModel();
+		// INSTANCIA: Libreria  13
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(105.0f, 0.0f, -54.0f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(8.0f, 8.0f, 8.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_libros.RenderModel();
+		// INSTANCIA: Libreria  14
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(105.0f, 0.0f, -60.0f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(8.0f, 8.0f, 8.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_libros.RenderModel();
+		// INSTANCIA: Libreria 15
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(109.0f, 0.0f, -20.0f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(8.0f, 8.0f, 8.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_libros.RenderModel();
+		// INSTANCIA: Libreria 16
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(115.0f, 0.0f, -20.0f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(8.0f, 8.0f, 8.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_libros.RenderModel();
+		// INSTANCIA: Libreria 17
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(121.0f, 0.0f, -20.0f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(8.0f, 8.0f, 8.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_libros.RenderModel();
+		// INSTANCIA: Libreria 18
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(128.0f, 0.0f, -20.0f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(8.0f, 8.0f, 8.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_libros.RenderModel();
+		// INSTANCIA: Libreria 19
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(134.0f, 0.0f, -20.0f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(8.0f, 8.0f, 8.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_libros.RenderModel();
+		// === NPC HW ===
+		//Hornet		
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(130.0f, 0.0f, -25.0f));
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.07f, 0.07f, 0.07f)); // Escala inicial
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hornet.RenderModel();
+		//Cornifer
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(110.0f, 0.0f, -30.0f));
+		model = glm::rotate(model, 110 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		cornifer.RenderModel();
+		//Sherma
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(135.0f, -0.5f, -54.0f));
+		model = glm::rotate(model, -90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f)); // Escala inicial
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_sherma.RenderModel();
+		//Marrissa
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(110.0f, -0.5f, -54.0f));
+		model = glm::rotate(model, 90 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.8f, 0.8f, 0.8f)); // Escala inicial
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		hw_marissa.RenderModel();
 
 
 
 
 		// >>>>>>>>>>>>>>>>>>>>>>>>> TEXTURAS Y MODELOS - TONY >>>>>>>>>>>>>>>>>>>>>>>>>>>
+		// ---------------------- Elementos del escenario de Miku --------------------------------
+	   // -- NODO PADRE: Stage ----------------------------------------------------
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-120.0f, 0.0f, 40.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Stage.RenderModel();
+		modelaux = model;
+		// -- HIJOS: personajes y props ---------------------------------------------
+		model = modelaux;
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Miku.RenderModel();
+		model = modelaux;
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Rin.RenderModel();
+		model = modelaux;
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Len.RenderModel();
+		model = modelaux;
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Luka.RenderModel();
+		model = modelaux;
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Piano.RenderModel();
+		model = modelaux;
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Instruments.RenderModel();
+		model = modelaux;
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Magnet.RenderModel();
+		model = modelaux;
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Leeks.RenderModel();
+		model = modelaux;
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Chairs.RenderModel();
+		model = modelaux;
+		model = glm::translate(model, glm::vec3(20.0f, 0.0f, 25.0f));  // ajustar
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Scene.RenderModel();
+		model = modelaux;
+		model = glm::translate(model, glm::vec3(20.0f, 0.0f, 40.0f));  // ajustar
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Scene.RenderModel();
+		// -- HIJOS: Lámparas -----------
+		// Lámpara 1 – hijo de Stage, posicionada a la izquierda
+		model = modelaux;
+		model = glm::translate(model, glm::vec3(-25.0f, 0.0f, 3.0f));  // ajusta a tu escenario
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		lamparaTony.RenderModel();
+		// Lámpara 2 – hijo de Stage, posicionada a la derecha
+		model = modelaux;
+		model = glm::translate(model, glm::vec3(25.0f, 0.0f, 3.0f));   // ajusta a tu escenario
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		lamparaTony.RenderModel();
+		// ------------------------- Reloj animacion Keyframse -----------------
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-0.3f, 19.0f, -27.5f));   // posición del reloj
+		model = glm::scale(model, glm::vec3(0.3f, 0.3f, 0.3f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		GearBase.RenderModel();
+		// Captura el transform del padre ANTES de añadir rotaciones de hijos
+		modelaux = model;
+		// -- HIJO: Gear1 ---
+		model = modelaux;
+		model = glm::translate(model, glm::vec3(0.0f, 1.2f, 0.0f));
+		model = glm::rotate(model, rotGear1 * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Gear1.RenderModel();
+		// -- HIJO: Gear2 ---
+		model = modelaux;
+		model = glm::translate(model, glm::vec3(1.0f, -0.5f, 0.0f));
+		model = glm::rotate(model, rotGear2 * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Gear2.RenderModel();
+		// -- HIJO: Gear3 ---
+		model = modelaux;
+		model = glm::translate(model, glm::vec3(-1.0f, -1.0f, 0.0f));
+		model = glm::rotate(model, rotGear3 * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Gear3.RenderModel();
+		// -- HIJO: GearHora ---
+		model = modelaux;
+		model = glm::rotate(model, rotGearHor * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		GearHora.RenderModel();
+		// -- HIJO: GearMinuto ---
+		model = modelaux;
+		model = glm::rotate(model, rotGearMin * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		GearMinuto.RenderModel();
+		// ----------------------  Reloj animacion Basica -------------------------------------
+		model = glm::mat4(1.0f);
+		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::translate(model, glm::vec3(0.0f, 16.0f, -24.0f));   // posición del reloj
+		model = glm::scale(model, glm::vec3(0.3f, 0.3f, 0.3f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		GearBase.RenderModel();
+		modelaux = model; // Captura la base del segundo reloj
+		// -- HIJO: Gear1 (Reloj 2) --
+		model = modelaux;
+		model = glm::translate(model, glm::vec3(0.0f, 1.2f, 0.0f));
+		model = glm::rotate(model, autoGearBackRotation * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Gear1.RenderModel();
+		// -- HIJO: Gear2 ---
+		model = modelaux;
+		model = glm::translate(model, glm::vec3(1.0f, -0.5f, 0.0f));
+		model = glm::rotate(model, -autoGearBackRotation * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Gear2.RenderModel();
+		// -- HIJO: Gear3 ---
+		model = modelaux;
+		model = glm::translate(model, glm::vec3(-1.0f, -1.0f, 0.0f));
+		model = glm::rotate(model, autoGearBackRotation * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Gear3.RenderModel();
+		// -- HIJO: GearHora (Reloj 2) --
+		model = modelaux;
+		model = glm::rotate(model, rotAutoGearHora * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		GearHora.RenderModel();
+		// -- HIJO: GearMinuto (Reloj 2) --
+		model = modelaux;
+		model = glm::rotate(model, rotAutoGearMinuto * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		GearMinuto.RenderModel();
+		// -------------------  CuckooBase ------------------------------------------------
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(20.0f, -3.0f, -15.0f)); // posición en la escena
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		CuckooBase.RenderModel();
+		modelaux = model;
+		model = modelaux;
+		model = glm::translate(model, glm::vec3(0.0f, 7.0f, 0.0f));
+		model = glm::rotate(model, ck_rotPendulo * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Cuckoo1.RenderModel();
+		// -- HIJO: Cuckoo2 – pájaro, inclinación en X (picoteo) ---
+		model = modelaux;
+		model = glm::rotate(model, ck_rotPajaro * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Cuckoo2.RenderModel();
+		// -- HIJO: Cuckoo3 – cadena izquierda, traslación en Y ---
+		model = modelaux;
+		model = glm::translate(model, glm::vec3(0.0f, ck_trasCad3, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Cuckoo3.RenderModel();
+		// -- HIJO: Cuckoo4 – cadena derecha, traslación en Y (opuesta) ---
+		model = modelaux;
+		model = glm::translate(model, glm::vec3(0.0f, ck_trasCad4, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Cuckoo4.RenderModel();
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(10.0f, 0.0f, -15.0f)); // posición en la escena
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		Teto.RenderModel();
+
+
+		
+
 		// >>>>>>>>>>>>>>>>>>>>>>>>> TEXTURAS Y MODELOS - RUBEN >>>>>>>>>>>>>>>>>>>>>>>>>>
 
 

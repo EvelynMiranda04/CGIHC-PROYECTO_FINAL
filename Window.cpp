@@ -166,7 +166,7 @@ void Window::ManejaTeclado(GLFWwindow* window, int key, int code, int action, in
 			theWindow->contadorTeclaB = 0; // Reinicio automático al llegar al final
 		}
 
-		printf("Maquina de Estados - Gatillo B: %d\n", theWindow->contadorTeclaB);
+		printf("Estas visualizando la fase %d de la animación de la locomotora\n", theWindow->contadorTeclaB);
 	}
 
 	// ====================================================================================

@@ -1,0 +1,182 @@
+# Blender 5.0.1 MTL File: 'PJS.blend'
+# www.blender.org
+
+newmtl Mdl_0_Mtl_m006_hati
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Mdl_0_Mtl_m006_hati_baseColor.png
+
+newmtl Mdl_0_Mtl_m006_hati.001
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Mdl_0_Mtl_m006_hati_baseColor.png
+
+newmtl Mdl_0_Mtl_m006_mizu_03
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Mdl_0_Mtl_m006_mizu_03_baseColor.png
+
+newmtl Mdl_0_Mtl_m006_mizu_03.001
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Mdl_0_Mtl_m006_mizu_03_baseColor.png
+
+newmtl Mdl_0_Mtl_m006_mizu_03_0
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Mdl_0_Mtl_m006_mizu_03_baseColor.png
+
+newmtl Mdl_0_Mtl_m006_mizu_03_0.001
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Mdl_0_Mtl_m006_mizu_03_baseColor.png
+
+newmtl Mdl_0_Mtl_m006_mizu_04
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Mdl_0_Mtl_m006_mizu_03_baseColor.png
+
+newmtl Mdl_0_Mtl_m006_mizu_04.001
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Mdl_0_Mtl_m006_mizu_03_baseColor.png
+
+newmtl Mdl_0_Mtl_m006_mizu_04_0
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Mdl_0_Mtl_m006_mizu_03_baseColor.png
+
+newmtl Mdl_0_Mtl_m006_mizu_04_0.001
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Mdl_0_Mtl_m006_mizu_03_baseColor.png
+
+newmtl Mdl_0_Mtl_m010_negia_01
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Mdl_0_Mtl_m010_negia_01_baseColor.png
+
+newmtl Mdl_0_Mtl_m010_negia_01.001
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Mdl_0_Mtl_m010_negia_01_baseColor.png
+
+newmtl Mdl_0_Mtl_m010_negib_01
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Mdl_0_Mtl_m010_negia_01_baseColor.png
+
+newmtl Mdl_0_Mtl_m010_negib_01.001
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Mdl_0_Mtl_m010_negia_01_baseColor.png
+
+newmtl Mdl_0_Mtl_m010_negic_01
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Mdl_0_Mtl_m010_negia_01_baseColor.png
+
+newmtl Mdl_0_Mtl_m010_negic_01.001
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Mdl_0_Mtl_m010_negia_01_baseColor.png
+
+newmtl Mdl_0_Mtl_test_kage2
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Mdl_0_Mtl_test_kage2_baseColor.png
+
+newmtl Mdl_0_Mtl_test_kage2.001
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Mdl_0_Mtl_test_kage2_baseColor.png
