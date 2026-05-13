@@ -1,0 +1,23 @@
+# Blender 5.1.0 MTL File: 'Untitled.blend'
+# www.blender.org
+
+newmtl 09_-_Default
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.520000
+d 1.000000
+illum 2
+map_Kd FS01.jpg
+map_Ns FS02.jpg
+map_Bump -bm 1.000000 FS03.jpg
+
+newmtl TrashBag
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd TB.png

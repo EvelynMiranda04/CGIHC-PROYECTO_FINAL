@@ -190,6 +190,39 @@ int  ck_max_steps = 40;   // frames por segmento (0.67 s a 60 fps, ajustable)
 int  ck_kf_idx = 0;
 bool ck_firstKF = true;
 
+// ==========================================
+// 3.9 - CHOQUE ESFERA ANIMACIÓN COMPLEJA (Rubén)
+// ==========================================
+
+float movEsferaX = 0.0f;
+float movEsferaZ = 0.0f;
+float rotEsferaY = 0.0f;
+float rotEsferaZ = 0.0f;
+float tiempoSerpenteo = 0.0f;
+float velocidadAvance = 0.2f;
+float puntoDestinoX = 435.0f;
+bool arbolCae = false;
+float anguloCaida = 80.0f;
+float rotArbol = 0.0f;
+float velocidadCaida;
+
+// ==========================================
+// 3.10 - DISPARO LATA ANIMACIÓN COMPLEJA (Rubén)
+// ==========================================
+bool disparoActivo = false; // La activamos por defecto para que sea cíclica
+float tiempoSalto = 0.0f;
+float lataPosZ = 0.0f;
+float lataPosY = 4.8f;
+float rotLata = 0.0f;
+
+// Constantes de reinicio
+const float VEL_SALTO_ORIGINAL = 10.0f;
+const float ALTURA_ORIGINAL = 4.8f;
+
+float velocidadSaltoActual = VEL_SALTO_ORIGINAL;
+float alturaBaseActual = ALTURA_ORIGINAL;
+int rebotesContados = 0;
+
 
 
 // ====================================================================================
@@ -228,7 +261,7 @@ Model LOL_12, LOL_13, LOL_14, LOL_15;	// XAYAH - ANNIE - TRISTANA - SEJUANI
 // --- DECORACIÓN 2
 Model LOL_03, LOL_06, LOL_07, LOL_08;	// TORRETA - WARD - MAESTRÍA - MAZO JAYCE
 Model LOL_09, LOL_10, LOL_11, LOL_16;	// AHRI - BASE - LUMINARIA - MAZO POPPY
-Model M24;								// RELOJ?
+Model M35_1, M35_2;								// RELOJ?
 Texture texturaHumo, texturaPoro;		// HUMO - PORO BLUSH
 
 // ==========================================
@@ -288,6 +321,13 @@ Model Cuckoo4;
 // ==========================================
 // 4.4 - TEXTURAS Y MODELOS (Ruben)
 // ==========================================
+Model DJSpit_Paredes_M;
+Model DJSpit_Basura_M;
+Model DJSpit_Escenario_M;
+Model DJSpit_Oficina_M;
+Model DJSpit_Lata_M;
+void inputKeyframes(bool* keys);
+
 
 
 // ====================================================================================
@@ -604,7 +644,6 @@ int main()
 	M21 = Model();				M21.LoadModel("Models/21.obj");
 	M22 = Model();				M22.LoadModel("Models/22.obj");
 	M23 = Model();				M23.LoadModel("Models/23.obj");
-	M24 = Model();				M24.LoadModel("Models/24.obj");
 	M25 = Model();				M25.LoadModel("Models/25.obj");
 	M26 = Model();				M26.LoadModel("Models/26.obj");
 	M27 = Model();				M27.LoadModel("Models/27.obj");
@@ -619,6 +658,8 @@ int main()
 	M33_1 = Model();			M33_1.LoadModel("Models/33-1.obj");
 	M33_2 = Model();			M33_2.LoadModel("Models/33-2.obj");
 	M34 = Model();				M34.LoadModel("Models/34.obj");
+	M35_1 = Model();			M35_1.LoadModel("Models/35_1.obj");
+	M35_2 = Model();			M35_2.LoadModel("Models/35_2.obj");
 	LOL_00 = Model();			LOL_00.LoadModel("Models/LOL_00.obj");
 	LOL_01 = Model();			LOL_01.LoadModel("Models/LOL_01.obj");
 	LOL_02 = Model();			LOL_02.LoadModel("Models/LOL_02.obj");
@@ -683,6 +724,13 @@ int main()
 	Cuckoo4 = Model(); Cuckoo4.LoadModel("Models/Cuckoo4.obj");
 
 	// -----------------------> 7.2.4 - Ruben
+	DJSpit_Paredes_M = Model();			DJSpit_Paredes_M.LoadModel("Models/djspit-paredes.obj");
+	DJSpit_Basura_M = Model();			DJSpit_Basura_M.LoadModel("Models/djspit-basura.obj");
+	DJSpit_Escenario_M = Model();		DJSpit_Escenario_M.LoadModel("Models/djspit-escenario.obj");
+	DJSpit_Oficina_M = Model();			DJSpit_Oficina_M.LoadModel("Models/smiling-oficina.obj");
+	DJSpit_Lata_M = Model();			DJSpit_Lata_M.LoadModel("Models/djspit-lata.obj");
+
+
 
 	// =========================================================
 	// --- 7.3. Carga de Skybox (Evelyn) --- y Materiales
@@ -1054,23 +1102,47 @@ int main()
 
 
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-		// ----- 8.1.4: LÓGICA DE ANIMACION B3 - Árbol (Ruben)
+		// ----- 8.1.4-5: LÓGICA DE ANIMACION B3 - Esfera y Árbol (Ruben)
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
+		// 1. Calcular el tiempo transcurrido (ya tienes deltaTime en tu código)
+		tiempoSerpenteo += deltaTime;
+
+
+		if (movEsferaX < puntoDestinoX) {
+			// 2. Definir el avance y el serpenteo
+			// El valor '5.0f' controla la amplitud (qué tanto se mueve a los lados)
+			// El valor '0.5f' controla la frecuencia (qué tan rápido serpentea)
+			movEsferaX += velocidadAvance * deltaTime;
+			movEsferaZ = 4.0f * sin(movEsferaX * 0.1f);
+
+			// 3. Rotación sobre su propio eje (similar a la rotllanta de tu ejemplo)
+			rotEsferaZ -= 10.0f * deltaTime;
+			rotEsferaY = 10.0f * sin(movEsferaX * 0.1f);
+		}
+		else {
+			if (rotArbol < anguloCaida) {
+
+				if (rotArbol < 15.0f) {
+					velocidadCaida = 0.1f;
+				}
+				else {
+					velocidadCaida = 0.5f;
+				}
+				rotArbol += velocidadCaida * deltaTime;
+
+			}
+
+			// Opcional: Forzar la posición exacta al llegar para evitar desfases
+			movEsferaX = puntoDestinoX;
+		}
+
 
 
 
 
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-		// ----- 8.1.2: LÓGICA DE ANIMACION A1 - Coche (Ruben)
-		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-
-
-
-
-		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-		// ----- 8.1.3: LÓGICA DE ANIMACION A2 - Humo (Evelyn)
+		// ----- 8.1.6: LÓGICA DE ANIMACION A2 - Humo (Evelyn)
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		temporizadorCicloHumo += deltaTime;
 		if (temporizadorCicloHumo >= 200.0f) {	// El ciclo completo dura 200.0f
@@ -1103,8 +1175,40 @@ int main()
 
 
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-		// ----- 8.1.4: LÓGICA DE ANIMACION A3 - Disparo (Ruben)
+		// ----- 8.1.7: LÓGICA DE ANIMACION A3 - Disparo (Ruben)
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+		if (disparoActivo) {
+			tiempoSalto += deltaTime;
+			rotLata += 200.0f * deltaTime;
+			lataPosZ += 4.0f * deltaTime;
+
+			// Fórmula de trayectoria
+			lataPosY = alturaBaseActual + (velocidadSaltoActual * tiempoSalto) - (0.5f * 9.8f * tiempoSalto * tiempoSalto);
+
+			// Detección de Rebote
+			if (lataPosY <= 0.0f && rebotesContados < 3) {
+				lataPosY = 0.0f;
+				tiempoSalto = 0.0f;
+				velocidadSaltoActual *= 0.6f; // Elasticidad
+				alturaBaseActual = 0.0f;      // Después del primer bote, sale del suelo
+				rebotesContados++;
+
+				// Sonido de rebote
+				//if (SoundEngine) SoundEngine->play3D("Sounds/clink.wav", vec3df(lataPosZ, 0, 0));
+			}
+
+			// --- BLOQUE DE REINICIO CÍCLICO ---
+			// Si ya rebotó 3 veces y está en el suelo o se alejó mucho
+			if (rebotesContados >= 3 && lataPosY <= 0.0f) {
+				lataPosY = 0.0f;
+				disparoActivo = false;
+
+				// Opcional: Sonido de "respawn" o recarga
+				//if (SoundEngine) SoundEngine->play2D("Sounds/reload.wav");
+			}
+		}
+
 
 
 
@@ -1815,6 +1919,27 @@ int main()
 		model = glm::rotate(model, 180 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		M34.RenderModel();
+		// ====================================================================================
+		// === MODELO M35 (INTERCAMBIO PARA COCINADO DE LUCES) ===
+		// ====================================================================================
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-200.0f, 0.0f, -20.0f));
+		model = glm::rotate(model, 312 * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+
+		// Usamos la misma condición de las luces puntuales (0=Amanecer, 5=Atardecer, 6 y 7=Noche)
+		if (indiceSkyboxActual == 0 || indiceSkyboxActual == 5 ||
+			indiceSkyboxActual == 6 || indiceSkyboxActual == 7)
+		{
+			// Luces ON: Renderizamos la versión con el cocinado de luz (M35_2)
+			M35_2.RenderModel();
+		}
+		else
+		{
+			// Luces OFF (Día pleno): Renderizamos la versión apagada/normal (M35_1)
+			M35_1.RenderModel();
+		}
+
 		// === RUNATERRA NPC's ===
 		// Ziggs (LOL_00)
 		model = glm::mat4(1.0);
@@ -2387,6 +2512,58 @@ int main()
 
 		// >>>>>>>>>>>>>>>>>>>>>>>>> TEXTURAS Y MODELOS - RUBEN >>>>>>>>>>>>>>>>>>>>>>>>>>
 
+		//DJ Spit - Bordes escenario
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(114.5f, 0.0f, 49.5f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		//Material_opaco.UseMaterial(uniformSpecularIntensity, uniformShininess);
+		DJSpit_Paredes_M.RenderModel();
+
+		//DJ Spit - Escenario principal
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(114.5f, 0.0f, 49.5f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		//Material_brillante.UseMaterial(uniformSpecularIntensity, uniformShininess);
+		DJSpit_Escenario_M.RenderModel();
+
+		//DJ Spit - Basura
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(114.5f, 0.0f, 49.5f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		//Material_opaco.UseMaterial(uniformSpecularIntensity, uniformShininess);
+		DJSpit_Basura_M.RenderModel();
+
+		//DJ Spit
+		model = glm::mat4(1.0);//119.5f, 0.0f, 46.5f     model = glm::translate(model, glm::vec3(-12.6f, lataPosY, -3.0f + lataPosZ));
+		model = glm::translate(model, glm::vec3(121.5f, lataPosY, 49.0f + lataPosZ));
+		//model = glm::scale(model, glm::vec3(30.0f, 30.0f, 30.0f));
+		model = glm::rotate(model, rotLata * toRadians, glm::vec3(1.0f, 0.5f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		DJSpit_Lata_M.RenderModel();
+
+		///////////////////////////Para la animación de la esfera///////////////////////////////
+		model = glm::mat4(1.0f);
+		//model = glm::scale(model, glm::vec3(0.45f, 0.45f, 0.45f));
+		model = glm::translate(model, glm::vec3(-250.0f + movEsferaX, 10.0f, 95.0f + movEsferaZ));
+		model = glm::rotate(model, rotEsferaZ * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::rotate(model, rotEsferaY * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+
+		Material_brillante.UseMaterial(uniformSpecularIntensity, uniformShininess);
+
+		DJSpit_Oficina_M.RenderModel();
+		////////////////////////////////////////////////////////////////////////////////////////
+
+		//Pino caído
+		model = glm::mat4(1.0);
+		model = glm::translate(model, glm::vec3(195.0f, 0.0f, 95.0f));
+		//model = glm::rotate(model, -80 * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::rotate(model, -rotArbol * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		M26.RenderModel();
+
+
 
 
 		// ====================================================================================
@@ -2433,4 +2610,24 @@ int main()
 	}
 
 	return 0;
+}
+
+
+void inputKeyframes(bool* keys)
+{
+	if (keys[GLFW_KEY_R]) { // Presionar R para reiniciar la lata
+		// Reset de posición
+		lataPosZ = 0.0f;
+		lataPosY = ALTURA_ORIGINAL;
+		alturaBaseActual = ALTURA_ORIGINAL;
+		rotLata = 0.0f;
+
+		// Reset de física
+		tiempoSalto = 0.0f;
+		velocidadSaltoActual = VEL_SALTO_ORIGINAL;
+		rebotesContados = 0;
+	}
+	if (keys[GLFW_KEY_T]) { // Presionar R para reiniciar la lata
+		disparoActivo = true;
+	}
 }
